@@ -12,7 +12,7 @@ group = "com.fengsheng"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    maven("https://maven.aliyun.com/repository/public")
+    maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
     mavenCentral()
 }
 
