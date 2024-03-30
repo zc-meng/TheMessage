@@ -6,16 +6,18 @@ import com.fengsheng.protos.Common.color.*
 
 /**
  * 统计三种颜色以及真情报的数量
- *
- * @param black 黑色情报的数量
- * @param red 红色情报的数量
- * @param blue 蓝色情报的数量
- * @param trueCard 真情报的数量
  */
 class CountColors(cards: Iterable<Card>) {
+    /** 黑色情报的数量 */
     var black = 0
+
+    /** 红色情报的数量 */
     var red = 0
+
+    /** 蓝色情报的数量 */
     var blue = 0
+
+    /** 真情报的数量 */
     var trueCard = 0
 
     init {
