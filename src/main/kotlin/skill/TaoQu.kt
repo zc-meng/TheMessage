@@ -228,7 +228,7 @@ class TaoQu : MainPhaseSkill() {
                 player.cards.count(it) >= 2
             }
             color.isNotEmpty() || return false
-            var value = 0
+            var value = -9
             var choosecolor = Black
             for (p in players) {
                 val messagecards = p!!.messageCards.toList()
@@ -241,7 +241,7 @@ class TaoQu : MainPhaseSkill() {
                     }
                 }
             }
-            value > 0 || return false // 如果没有找到合适的情报，则不发动
+            value > -9 || return false // 如果没有找到合适的情报，则不发动
             val cardIds = player.cards.filter(choosecolor).shuffled().take(2).map { it.id }
             GameExecutor.post(player.game!!, {
                 skill.executeProtocol(player.game!!, player, skillTaoQuATos { this.cardIds.addAll(cardIds) })
