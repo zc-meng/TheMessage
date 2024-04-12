@@ -28,6 +28,8 @@
 第一次运行会在根目录下生成一个`application.properties`，如下：
 
 ```properties
+# 文件服务器监听端口
+file_server_port=9091
 # 服务端监听端口
 listen_websocket_port=9091
 # 游戏开始时摸牌数
@@ -96,6 +98,12 @@ push.push_qq_groups=12345678
 | /winrate          | 无                                | 返回一张胜率统计的png图片                                                                         |
 | /updatetitle      | name=aaa&title=bbb               | 更新玩家的称号，其中name是用户名，title是称号，title为空就是删除称号                                              |
 | /resetseason      | 无                                | 重置赛季，重置前请手动备份PlayerInfo.csv                                                            |
+
+## 关于文件服务器
+
+提供了一个文件服务器端口，供客户端下载资源文件，`file_server_port`字段配成0就是不启用文件服务器。
+
+启动后，访问"http://ip:port/"即可看到`files`文件夹（自行创建一个`files`文件夹）下的文件列表，点击文件名即可下载。（目前暂不支持嵌套文件夹）
 
 ## 开发相关
 
