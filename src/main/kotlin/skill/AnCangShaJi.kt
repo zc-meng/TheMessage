@@ -80,15 +80,15 @@ class AnCangShaJi : TriggeredSkill {
             var card: Card? = null
             var handCard: Card? = null
             if (message.cardId != 0) {
-                card = r.findCard(message.cardId)
+                card = r.findMessageCard(message.cardId)
                 if (card == null) {
-                    logger.error("没有这张牌")
-                    player.sendErrorMessage("没有这张牌")
+                    logger.error("没有这张情报")
+                    player.sendErrorMessage("没有这张情报")
                     return null
                 }
                 if (!card.isPureBlack()) {
-                    logger.error("你选择的不是纯黑色牌")
-                    player.sendErrorMessage("你选择的不是纯黑色牌")
+                    logger.error("你选择的不是纯黑色情报")
+                    player.sendErrorMessage("你选择的不是纯黑色情报")
                     return null
                 }
             } else {
@@ -106,7 +106,7 @@ class AnCangShaJi : TriggeredSkill {
                 r.cards.add(handCard)
                 r.game!!.addEvent(GiveCardEvent(event.whoseTurn, target, r))
             } else {
-                logger.info("${r}发动了[暗藏杀机]，将${card}置入${target}的情报区")
+                logger.info("${r}发动了[暗藏杀机]，将自己面前的${card}置入${target}的情报区")
                 r.deleteCard(card.id)
                 target.messageCards.add(card)
                 r.game!!.addEvent(AddMessageCardEvent(event.whoseTurn))
@@ -114,7 +114,7 @@ class AnCangShaJi : TriggeredSkill {
             r.game!!.players.send { p ->
                 skillAnCangShaJiToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    card?.let { this.card = it.toPbCard() }
+                    cardId = message.cardId
                     targetPlayerId = p.getAlternativeLocation(target.location)
                     if (p === r || p === target) handCard?.let { this.handCard = it.toPbCard() }
                 }
