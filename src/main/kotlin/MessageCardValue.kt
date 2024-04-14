@@ -56,36 +56,37 @@ fun Player.willWin(whoseTurn: Player, inFrontOfWhom: Player, card: Card) =
 fun Player.willWin(whoseTurn: Player, inFrontOfWhom: Player, colors: List<color>) =
     calculateMessageCardValue(whoseTurn, inFrontOfWhom, colors) >= 600
 
-/**
- * 判断玩家是否赢了，考虑CP小九和CP韩梅的技能，不考虑簒夺者
- */
-private fun Player.willWinInternalCp(
-    whoseTurn: Player,
-    inFrontOfWhom: Player,
-    colors: List<color>,
-    partnerTogether: Boolean = true
-): Boolean {
-    if (!alive) return false
-    if (willWinInternal(whoseTurn, inFrontOfWhom, colors, partnerTogether)) return true
-    val g = whoseTurn.game!!
-    fun isCpXiaoJiu(p: Player?) = p!!.alive && p.skills.any { it is YiZhongRen }
-    fun isCpHanMei(p: Player?) = p!!.alive && p.skills.any { it is BaiYueGuang }
-    fun isHanMei(p: Player) = p.alive && p.roleName.endsWith("韩梅")
-    fun isXiaoJiu(p: Player) = p.alive && p.roleName.endsWith("小九")
-    val counts = CountColors(inFrontOfWhom.messageCards)
-    counts += colors
-    if (isCpXiaoJiu(this) && isHanMei(inFrontOfWhom) && counts.red >= 3 &&
-        !inFrontOfWhom.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
-    ) return true
-    if (isCpHanMei(this) && isXiaoJiu(inFrontOfWhom) && counts.blue >= 3 &&
-        !inFrontOfWhom.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
-    ) return true
-    if (this === inFrontOfWhom) {
-        if (isHanMei(this) && counts.red >= 3 && g.players.any(::isCpXiaoJiu)) return true
-        if (isXiaoJiu(this) && counts.blue >= 3 && g.players.any(::isCpHanMei)) return true
-    }
-    return false
-}
+// TODO CP胜利条件太复杂了，还会引发一大堆bug，先不写了
+// /**
+// * 判断玩家是否赢了，考虑CP小九和CP韩梅的技能，不考虑簒夺者
+// */
+// private fun Player.willWinInternalCp(
+//    whoseTurn: Player,
+//    inFrontOfWhom: Player,
+//    colors: List<color>,
+//    partnerTogether: Boolean = true
+// ): Boolean {
+//    if (!alive) return false
+//    if (willWinInternal(whoseTurn, inFrontOfWhom, colors, partnerTogether)) return true
+//    val g = whoseTurn.game!!
+//    fun isCpXiaoJiu(p: Player?) = p!!.alive && p.skills.any { it is YiZhongRen }
+//    fun isCpHanMei(p: Player?) = p!!.alive && p.skills.any { it is BaiYueGuang }
+//    fun isHanMei(p: Player) = p.alive && p.roleName.endsWith("韩梅")
+//    fun isXiaoJiu(p: Player) = p.alive && p.roleName.endsWith("小九")
+//    val counts = CountColors(inFrontOfWhom.messageCards)
+//    counts += colors
+//    if (isCpXiaoJiu(this) && isHanMei(inFrontOfWhom) && counts.red >= 3 &&
+//        !inFrontOfWhom.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
+//    ) return true
+//    if (isCpHanMei(this) && isXiaoJiu(inFrontOfWhom) && counts.blue >= 3 &&
+//        !inFrontOfWhom.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
+//    ) return true
+//    if (this === inFrontOfWhom) {
+//        if (isHanMei(this) && counts.red >= 3 && g.players.any(::isCpXiaoJiu)) return true
+//        if (isXiaoJiu(this) && counts.blue >= 3 && g.players.any(::isCpHanMei)) return true
+//    }
+//    return false
+// }
 
 /**
  * 判断玩家是否赢了，不考虑簒夺者
@@ -288,28 +289,28 @@ fun Player.calculateMessageCardValue(
     if (!checkThreeSame) {
         if (whoseTurn.identity == Black && whoseTurn.secretTask == Stealer) {
             if (this === whoseTurn) { // 簒夺者的回合，任何人赢了，簒夺者都会赢
-                if (game!!.players.any { it !== disturber && it!!.willWinInternalCp(whoseTurn, inFrontOfWhom, colors) })
+                if (game!!.players.any { it !== disturber && it!!.willWinInternal(whoseTurn, inFrontOfWhom, colors) })
                     return 600
             } else { // 簒夺者的回合，任何人赢了，都算作输
-                if (game!!.players.any { it !== disturber && it!!.willWinInternalCp(whoseTurn, inFrontOfWhom, colors) })
+                if (game!!.players.any { it !== disturber && it!!.willWinInternal(whoseTurn, inFrontOfWhom, colors) })
                     return -600
             }
         } else if (whoseTurn.roleFaceUp && whoseTurn.skills.any { it is BiYiShuangFei }) {
             if (this === whoseTurn) { // 秦圆圆的回合，任何男性角色赢了，秦圆圆都会赢
                 if (game!!.players.any {
                         it !== disturber && (isPartnerOrSelf(it!!) || it.isMale) &&
-                            it.willWinInternalCp(whoseTurn, inFrontOfWhom, colors, false)
+                            it.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
                     }) return 600
                 if (game!!.players.any {
                         it !== disturber && !(isPartnerOrSelf(it!!) || it.isMale) &&
-                            it.willWinInternalCp(whoseTurn, inFrontOfWhom, colors, false)
+                            it.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
                     }) return -600
             } else if (identity == Black) { // 秦圆圆的回合，神秘人没关系，反正没有队友
                 if (game!!.players.any {
-                        it !== disturber && !isEnemy(it!!) && it.willWinInternalCp(whoseTurn, inFrontOfWhom, colors)
+                        it !== disturber && !isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
                     }) return 600
                 if (game!!.players.any {
-                        it !== disturber && isEnemy(it!!) && it.willWinInternalCp(whoseTurn, inFrontOfWhom, colors)
+                        it !== disturber && isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
                     }) return -600
             } else if (inFrontOfWhom.identity in colors && inFrontOfWhom.messageCards.count(inFrontOfWhom.identity) >= 2) {
                 return if (inFrontOfWhom === this || isPartner(inFrontOfWhom) &&
@@ -317,9 +318,11 @@ fun Player.calculateMessageCardValue(
                 ) 600 else -600
             }
         } else {
-            if (willWinInternalCp(whoseTurn, inFrontOfWhom, colors)) return 600
             if (game!!.players.any {
-                    it !== disturber && it !== this && it!!.willWinInternalCp(whoseTurn, inFrontOfWhom, colors)
+                    it !== disturber && !isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
+                }) return 600
+            if (game!!.players.any {
+                    it !== disturber && isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
                 }) return -600
         }
     }
