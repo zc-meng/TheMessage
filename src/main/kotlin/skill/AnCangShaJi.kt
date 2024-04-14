@@ -32,7 +32,7 @@ class AnCangShaJi : TriggeredSkill {
             }
             event.sender.alive && event.inFrontOfWhom.alive || return@findEvent false
             Blue in event.messageCard.colors || return@findEvent false
-            askWhom.cards.isNotEmpty() || target.cards.isNotEmpty()
+            askWhom.messageCards.any { it.isPureBlack() } || target.cards.isNotEmpty()
         } ?: return null
         return ResolveResult(ExecuteAnCangShaJi(g.fsm!!, event, askWhom, target), true)
     }
@@ -107,9 +107,10 @@ class AnCangShaJi : TriggeredSkill {
                 r.game!!.addEvent(GiveCardEvent(event.whoseTurn, target, r))
             } else {
                 logger.info("${r}发动了[暗藏杀机]，将自己面前的${card}置入${target}的情报区")
-                r.deleteCard(card.id)
+                r.deleteMessageCard(card.id)
                 target.messageCards.add(card)
-                r.game!!.addEvent(AddMessageCardEvent(event.whoseTurn))
+                if (r !== target)
+                    r.game!!.addEvent(AddMessageCardEvent(event.whoseTurn))
             }
             r.game!!.players.send { p ->
                 skillAnCangShaJiToc {
