@@ -1,7 +1,6 @@
 package com.fengsheng.skill
 
 import com.fengsheng.*
-import com.fengsheng.RobotPlayer.Companion.bestCardOrNull
 import com.fengsheng.card.Card
 import com.fengsheng.protos.Common.color.Blue
 import com.fengsheng.protos.Fengsheng.end_receive_phase_tos
@@ -104,7 +103,8 @@ class AnCangShaJi : TriggeredSkill {
                 logger.info("${r}发动了[暗藏杀机]，抽取了${target}一张$handCard")
                 target.deleteCard(handCard!!.id)
                 r.cards.add(handCard)
-                r.game!!.addEvent(GiveCardEvent(event.whoseTurn, target, r))
+                if (r !== target)
+                    r.game!!.addEvent(GiveCardEvent(event.whoseTurn, target, r))
             } else {
                 logger.info("${r}发动了[暗藏杀机]，将自己面前的${card}置入${target}的情报区")
                 r.deleteMessageCard(card.id)
@@ -129,12 +129,14 @@ class AnCangShaJi : TriggeredSkill {
             if (fsm0 !is ExecuteAnCangShaJi) return false
             val p = fsm0.r
             val target = fsm0.target
-            var card = p.cards.filter { it.isPureBlack() }.bestCardOrNull(p.identity, true)
+            p !== target || return false
+            var card = p.messageCards.find { it.isPureBlack() }
             if (card != null) {
-                val v = p.calculateMessageCardValue(fsm0.event.whoseTurn, target, card)
-                if (v <= 0) card = null
+                val v1 = p.calculateRemoveCardValue(fsm0.event.whoseTurn, p, card)
+                val v2 = p.calculateMessageCardValue(fsm0.event.whoseTurn, target, card)
+                if (v1 + v2 <= 0) card = null
             }
-            if (card != null || p !== target && target.cards.isNotEmpty()) {
+            if (card != null || target.cards.isNotEmpty()) {
                 GameExecutor.post(p.game!!, {
                     p.game!!.tryContinueResolveProtocol(p, skillAnCangShaJiTos { card?.let { cardId = it.id } })
                 }, 3, TimeUnit.SECONDS)
