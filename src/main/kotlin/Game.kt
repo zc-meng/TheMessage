@@ -179,17 +179,13 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         if (declaredWinners != null && winners != null) {
             if (players.size >= 5) {
                 if (winners.isNotEmpty() && winners.size < players.size) {
-                    val totalWinners = winners.sumOf { (Statistics.getScore(it.playerName) ?: 0).coerceIn(180..1900) }
-                    val totalPlayers = players.sumOf { (Statistics.getScore(it!!.playerName) ?: 0).coerceIn(180..1900) }
+                    val totalWinners = winners.sumOf { (Statistics.getScore(it) ?: 0).coerceIn(180..1900) }
+                    val totalPlayers = players.sumOf { (Statistics.getScore(it!!) ?: 0).coerceIn(180..1900) }
                     val totalLoser = totalPlayers - totalWinners
                     val delta = totalLoser / (players.size - winners.size) - totalWinners / winners.size
-                    for ((i, p) in humanPlayers.withIndex()) {
-                        val score = p.calScore(players.filterNotNull(), winners, delta / 10)
-                        val (newScore, deltaScore) = Statistics.updateScore(
-                            p.playerName,
-                            score,
-                            i == humanPlayers.size - 1
-                        )
+                    for ((i, p) in players.withIndex()) {
+                        val score = p!!.calScore(players.filterNotNull(), winners, delta / 10)
+                        val (newScore, deltaScore) = Statistics.updateScore(p, score, i == humanPlayers.size - 1)
                         logger.info("$p(${p.originIdentity},${p.originSecretTask})得${score}分，新分数为：$newScore")
                         addScoreMap[p.playerName] = deltaScore
                         newScoreMap[p.playerName] = newScore
@@ -219,7 +215,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 if (humanPlayers.size > 1)
                     MiraiPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap)
             }
-            this.players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
+            players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
         }
         humanPlayers.forEach { it.saveRecord() }
         humanPlayers.forEach { playerNameCache.remove(it.playerName) }

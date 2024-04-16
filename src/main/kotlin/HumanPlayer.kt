@@ -384,16 +384,10 @@ class HumanPlayer(
                 val player = game!!.players[getAbstractLocation(it)]!!
                 identity.add(player.identity)
                 secretTasks.add(player.secretTask)
-                if (player is HumanPlayer) {
-                    val ns = newScoreMap[player.playerName] ?: Statistics.getScore(player.playerName) ?: 0
-                    addScore.add(addScoreMap[player.playerName] ?: 0)
-                    newScore.add(ns)
-                    newRank.add(ScoreFactory.getRankNameByScore(ns))
-                } else {
-                    addScore.add(0)
-                    newScore.add(0)
-                    newRank.add("")
-                }
+                val ns = newScoreMap[player.playerName] ?: Statistics.getScore(player) ?: 0
+                addScore.add(addScoreMap[player.playerName] ?: 0)
+                newScore.add(ns)
+                newRank.add(ScoreFactory.getRankNameByScore(ns))
             }
         })
     }

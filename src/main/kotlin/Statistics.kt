@@ -26,6 +26,7 @@ object Statistics {
         timeZone = TimeZone.getTimeZone("GMT+8:00")
     }
     private val playerInfoMap = ConcurrentHashMap<String, PlayerInfo>()
+    private val robotInfoMap = ConcurrentHashMap<String, RobotInfo>()
     private val totalWinCount = AtomicInteger()
     private val totalGameCount = AtomicInteger()
     private val trialStartTime = ConcurrentHashMap<String, Long>()
@@ -146,6 +147,8 @@ object Statistics {
 
     fun getPlayerInfo(name: String) = playerInfoMap[name]
     fun getScore(name: String) = playerInfoMap[name]?.score
+    fun getScore(player: Player) =
+        if (player is HumanPlayer) getScore(player.playerName) else robotInfoMap[player.playerName]?.score
 
     fun updateTitle(name: String, title: String): Boolean {
         var succeed = false
@@ -161,13 +164,21 @@ object Statistics {
     /**
      * @return Pair(score的新值, score的变化量)
      */
-    fun updateScore(name: String, score: Int, save: Boolean): Pair<Int, Int> {
+    fun updateScore(player: Player, score: Int, save: Boolean): Pair<Int, Int> {
         var newScore = 0
         var delta = 0
-        playerInfoMap.computeIfPresent(name) { _, v ->
-            newScore = v.score addScore score
-            delta = newScore - v.score
-            v.copy(score = newScore)
+        if (player is HumanPlayer) {
+            playerInfoMap.computeIfPresent(player.playerName) { _, v ->
+                newScore = v.score addScore score
+                delta = newScore - v.score
+                v.copy(score = newScore)
+            }
+        } else {
+            robotInfoMap.compute(player.playerName) { _, v ->
+                newScore = (v?.score ?: 0) addScore score
+                delta = newScore - (v?.score ?: 0)
+                v?.copy(score = newScore) ?: RobotInfo(player.playerName, newScore)
+            }
         }
         if (save) pool.trySend(::savePlayerInfo)
         return newScore to delta
@@ -242,6 +253,12 @@ object Statistics {
             sb.append(info.lastTime).append('\n')
         }
         writeFile("playerInfo.csv", sb.toString().toByteArray())
+        sb.clear()
+        for ((_, info) in robotInfoMap) {
+            sb.append(info.score).append(',')
+            sb.append(info.name).append('\n')
+        }
+        writeFile("robotInfo.csv", sb.toString().toByteArray())
     }
 
     private fun saveTrials() {
@@ -259,10 +276,9 @@ object Statistics {
         var gameCount = 0
         try {
             BufferedReader(InputStreamReader(FileInputStream("playerInfo.csv"))).use { reader ->
-                var line: String?
+                var line: String
                 while (true) {
-                    line = reader.readLine()
-                    if (line == null) break
+                    line = reader.readLine() ?: break
                     val a = line.split(",".toRegex(), limit = 8)
                     val pwd = a[4]
                     val score = if (a[3].length < 6) a[3].toInt() else 0 // 以前这个位置是deviceId
@@ -276,6 +292,20 @@ object Statistics {
                         throw RuntimeException("数据错误，有重复的玩家name")
                     winCount += win
                     gameCount += game
+                }
+            }
+        } catch (ignored: FileNotFoundException) {
+        }
+        try {
+            BufferedReader(InputStreamReader(FileInputStream("robotInfo.csv"))).use { reader ->
+                var line: String
+                while (true) {
+                    line = reader.readLine() ?: break
+                    val a = line.split(",".toRegex(), limit = 2)
+                    val score = a[0].toInt()
+                    val name = a[1]
+                    if (robotInfoMap.put(name, RobotInfo(name, score)) != null)
+                        throw RuntimeException("数据错误，有重复的机器人name")
                 }
             }
         } catch (ignored: FileNotFoundException) {
@@ -364,6 +394,11 @@ object Statistics {
         val forbidUntil: Long,
         val title: String,
         val lastTime: Long,
+    )
+
+    data class RobotInfo(
+        val name: String,
+        val score: Int,
     )
 
     private fun writeFile(fileName: String, buf: ByteArray, append: Boolean = false) {
