@@ -99,11 +99,23 @@ push.push_qq_groups=12345678
 | /updatetitle      | name=aaa&title=bbb               | 更新玩家的称号，其中name是用户名，title是称号，title为空就是删除称号                                              |
 | /resetseason      | 无                                | 重置赛季，重置前请手动备份PlayerInfo.csv                                                            |
 
+## 把战绩推送到QQ群
+
+将配置文件`application.properties`中的`push.enable_push`设置为`true`，就可以开启将战绩推送到QQ群的功能。
+
+想要把战绩推送到QQ群，你应该知道如何使用[mirai](https://github.com/mamoe/mirai)进行登录，并安装[mirai-api-http](https://github.com/project-mirai/mirai-api-http)插件。
+
+请多参阅mirai-api-http的[文档](https://docs.mirai.mamoe.net/mirai-api-http/api/API.html)。
+
+本项目使用http接口，因此你需要修改mirai的配置文件`config/net.mamoe.mirai-api-http/setting.yml`，开启http监听。
+
+*纯人机局不会推送，至少要有2名真人玩家时才会推送。*
+
 ## 关于文件服务器
 
 提供了一个文件服务器端口，供客户端下载资源文件，`file_server_port`字段配成0就是不启用文件服务器。
 
-启动后，访问`http://ip:port/`即可看到`files`文件夹（自行创建一个`files`文件夹）下的文件列表，点击文件名即可下载。（目前暂不支持嵌套文件夹）
+启动后，访问`http://ip:port/`即可看到`files`文件夹（事先自行创建一个`files`文件夹）下的文件列表，点击文件名即可下载。（目前暂不支持嵌套文件夹）
 
 ## 开发相关
 
