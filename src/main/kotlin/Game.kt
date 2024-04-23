@@ -410,9 +410,6 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         val playerNameCache = ConcurrentHashMap<String, HumanPlayer>()
         val increaseId = AtomicInteger(0)
 
-        @Volatile
-        var lastTotalPlayerCount = Config.TotalPlayerCount
-
         fun exchangePlayer(oldPlayer: HumanPlayer, newPlayer: HumanPlayer) {
             oldPlayer.channel = newPlayer.channel
             oldPlayer.needWaitLoad = newPlayer.needWaitLoad
@@ -422,10 +419,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         }
 
         val onlineCount: Int
-            get() = gameCache.values.sumOf { it.players.count { p -> p != null } } +
-                Random(System.currentTimeMillis() / 300000).run {
-                    (0..nextInt(1..4)).sumOf { nextInt(5..9) }
-                }
+            get() = gameCache.values.sumOf { it.players.count { p -> p != null } }
 
         @Throws(IOException::class, ClassNotFoundException::class)
         @JvmStatic
