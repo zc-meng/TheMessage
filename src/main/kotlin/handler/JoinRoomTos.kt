@@ -70,6 +70,10 @@ class JoinRoomTos : ProtoHandler {
         }
         val newGame = GameExecutor.getGame(pb.roomId, pb.playerCount)
         GameExecutor.post(newGame) {
+            if (newGame.isStarted) {
+                player.sendErrorMessage("游戏已经开始，无法进入")
+                return@post
+            }
             if (player.game !== null) {
                 logger.warn("${player}登录异常")
                 player.sendErrorMessage("登录异常，请稍后重试")
