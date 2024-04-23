@@ -1,12 +1,9 @@
 package com.fengsheng.handler
 
-import com.fengsheng.Config
-import com.fengsheng.HumanPlayer
-import com.fengsheng.RobotPlayer
+import com.fengsheng.*
 import com.fengsheng.protos.Fengsheng
 import com.fengsheng.protos.leaveRoomToc
 import com.fengsheng.protos.removeOnePositionToc
-import com.fengsheng.send
 import org.apache.logging.log4j.kotlin.logger
 
 class RemoveOnePositionTos : AbstractProtoHandler<Fengsheng.remove_one_position_tos>() {
@@ -37,7 +34,7 @@ class RemoveOnePositionTos : AbstractProtoHandler<Fengsheng.remove_one_position_
             p?.send(removeOnePositionToc { position = index })
         }
         if (players.any { it == null }) return
-        if (!Config.IsGmEnable && players.count { it is HumanPlayer } <= 1) {
+        if (!Config.IsGmEnable && players.count { it is HumanPlayer } <= 1 && (Statistics.getScore(r.playerName) ?: 0) >= 60) {
             val robotPlayerIndex = players.indexOfLast { it is RobotPlayer }
             if (robotPlayerIndex >= 0) {
                 val robotPlayer = players[index]!!
