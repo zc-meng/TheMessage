@@ -140,7 +140,7 @@ class Recorder {
             }
             val diffNanoTime = list[currentIndex].nanoTime - line.nanoTime
             if (diffNanoTime > 100000000) {
-                var maxInterval = 2000000000L
+                var maxInterval = 3000000000L
                 if (list[currentIndex].protoName in fastDisplayProtoNames && line.protoName in fastDisplayProtoNames)
                     maxInterval /= 2
                 GameExecutor.TimeWheel.newTimeout(
