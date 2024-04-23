@@ -6,7 +6,6 @@ import com.fengsheng.protos.*
 import com.google.protobuf.GeneratedMessage
 import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.kotlin.logger
-import java.nio.charset.StandardCharsets
 
 class JoinRoomTos : ProtoHandler {
     override fun handle(player: HumanPlayer, message: GeneratedMessage) {
@@ -17,7 +16,7 @@ class JoinRoomTos : ProtoHandler {
         }
         val pb = message as Fengsheng.join_room_tos
         val playerName = pb.name
-        if (playerName.toByteArray(StandardCharsets.UTF_8).size > 24) {
+        if (playerName.length > 12) {
             player.sendErrorMessage("名字太长了")
             return
         }
