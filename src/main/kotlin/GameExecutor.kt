@@ -11,7 +11,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
-class StopGameActor
+class StopGameActor(val game: Game)
 
 class GameActor : AbstractActor() {
     override fun createReceive(): Receive {
@@ -31,6 +31,10 @@ class GameActor : AbstractActor() {
                 }
             }
             .match(StopGameActor::class.java) {
+                logger.info("房间销毁，rid=${it.game.id}")
+                Game.gameCache.remove(it.game.id, it.game)
+                it.game.players.forEach { p -> p?.reset() }
+                it.game.players = emptyList()
                 context.stop(self)
             }
             .build()
@@ -112,7 +116,7 @@ object GameExecutor {
         val actorRef = system.actorOf(Props.create(GameActor::class.java), "game-$newId")
         val game = Game(newId, count, actorRef)
         if (Game.gameCache.putIfAbsent(newId, game) != null) {
-            game.actorRef.tell(StopGameActor(), ActorRef.noSender())
+            game.actorRef.tell(StopGameActor(game), ActorRef.noSender())
             throw IllegalStateException("游戏ID冲突")
         }
         return game

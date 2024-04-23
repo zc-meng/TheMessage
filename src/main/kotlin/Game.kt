@@ -172,7 +172,6 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     fun end(declaredWinners: List<Player>?, winners: List<Player>?, forceEnd: Boolean = false) {
         isEnd = true
-        gameCache.remove(id)
         val humanPlayers = players.filterIsInstance<HumanPlayer>()
         val addScoreMap = HashMap<String, Int>()
         val newScoreMap = HashMap<String, Int>()
@@ -219,9 +218,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         }
         humanPlayers.forEach { it.saveRecord() }
         humanPlayers.forEach { playerNameCache.remove(it.playerName) }
-        players.forEach { it!!.reset() }
         if (forceEnd) humanPlayers.forEach { it.send(notifyKickedToc {}) }
-        actorRef.tell(StopGameActor(), ActorRef.noSender())
+        actorRef.tell(StopGameActor(this), ActorRef.noSender())
     }
 
     /**
