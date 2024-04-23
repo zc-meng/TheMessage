@@ -37,8 +37,8 @@ class RemoveOnePositionTos : AbstractProtoHandler<Fengsheng.remove_one_position_
         if (!Config.IsGmEnable && players.count { it is HumanPlayer } <= 1 && (Statistics.getScore(r.playerName) ?: 0) >= 60) {
             val robotPlayerIndex = players.indexOfLast { it is RobotPlayer }
             if (robotPlayerIndex >= 0) {
-                val robotPlayer = players[index]!!
-                r.game!!.players = r.game!!.players.toMutableList().apply { set(index, null) }
+                val robotPlayer = players[robotPlayerIndex]!!
+                r.game!!.players = r.game!!.players.toMutableList().apply { set(robotPlayerIndex, null) }
                 logger.info("${robotPlayer.playerName}离开了房间")
                 val reply = leaveRoomToc { position = robotPlayer.location }
                 players.send { reply }
