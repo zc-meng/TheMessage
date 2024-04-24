@@ -419,6 +419,9 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         val onlineCount: Int
             get() = gameCache.values.sumOf { it.players.count { p -> p != null } }
 
+        val inGameCount: Int
+            get() = gameCache.values.count { it.isStarted }
+
         @Throws(IOException::class, ClassNotFoundException::class)
         @JvmStatic
         fun main(args: Array<String>) {

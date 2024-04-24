@@ -121,6 +121,7 @@ class JoinRoomTos : ProtoHandler {
             player.send(getRoomInfoToc {
                 myPosition = player.location
                 onlineCount = Game.onlineCount
+                inGameCount = Game.inGameCount
                 for (p in player.game!!.players) {
                     if (p == null) {
                         names.add("")
