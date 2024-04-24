@@ -32,6 +32,8 @@
 file_server_port=9091
 # 服务端监听端口
 listen_websocket_port=9091
+# 播放录像时最大间隔时间（秒）
+rule.record_max_interval=3
 # 游戏开始时摸牌数
 rule.hand_card_count_begin=3
 # 每回合摸牌数
