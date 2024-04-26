@@ -16,7 +16,7 @@ class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
             r.sendErrorMessage("房间已满，不能添加机器人")
             return
         }
-        if (!Config.IsGmEnable) {
+//        if (!Config.IsGmEnable) {
 //            val score = Statistics.getScore(r.playerName) ?: 0
 //            if (score <= 0) {
 //                val now = System.currentTimeMillis()
@@ -28,12 +28,12 @@ class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
 //                    return
 //                }
 //            }
-            val humanCount = r.game!!.players.count { it is HumanPlayer }
-            if (humanCount <= 1 && emptyPosition == 1 && (Statistics.getScore(r.playerName) ?: 0) >= 60) {
-                r.sendErrorMessage("至少要2人才能开始游戏")
-                return
-            }
-        }
+//            val humanCount = r.game!!.players.count { it is HumanPlayer }
+//            if (humanCount <= 1 && emptyPosition == 1 && (Statistics.getScore(r.playerName) ?: 0) >= 60) {
+//                r.sendErrorMessage("至少要2人才能开始游戏")
+//                return
+//            }
+//        }
         val robotPlayer = RobotPlayer()
         robotPlayer.playerName = Player.randPlayerName(r.game!!)
         robotPlayer.game = r.game
