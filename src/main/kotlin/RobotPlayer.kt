@@ -163,7 +163,7 @@ class RobotPlayer : Player() {
                 else
                     MessageMoveNext(fsm)
             )
-        }, 1, TimeUnit.SECONDS)
+        }, 1500, TimeUnit.MILLISECONDS)
     }
 
     override fun notifyChooseReceiveCard(player: Player) {
