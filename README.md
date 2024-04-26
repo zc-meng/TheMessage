@@ -3,6 +3,7 @@
 ![](https://img.shields.io/github/languages/top/CuteReimu/TheMessage "语言")
 ![](https://img.shields.io/badge/java%20version-17-informational "Java 17")
 [![](https://img.shields.io/github/actions/workflow/status/CuteReimu/TheMessage/build.yml?branch=kotlin)](https://github.com/CuteReimu/TheMessage/actions/workflows/build.yml "代码分析")
+[![](https://img.shields.io/github/issues/CuteReimu/TheMessage)](https://github.com/CuteReimu/TheMessage/issues "issues")
 [![](https://img.shields.io/github/contributors/CuteReimu/TheMessage)](https://github.com/CuteReimu/TheMessage/graphs/contributors "贡献者")
 [![](https://img.shields.io/github/license/CuteReimu/TheMessage)](https://github.com/CuteReimu/TheMessage/blob/kotlin/LICENSE "许可协议")
 
