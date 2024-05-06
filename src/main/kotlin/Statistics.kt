@@ -185,11 +185,13 @@ object Statistics {
     }
 
     fun calculateRankList() {
-        val l1 = playerInfoMap.filter { (_, v) -> v.score > 0 }.map { (_, v) ->
-            val days = ((System.currentTimeMillis() - v.lastTime) / (24 * 3600000L)).toInt()
+        val now = System.currentTimeMillis()
+        val l1 = playerInfoMap.map { (_, v) ->
+            if (v.score <= 0) return@map v
+            val days = ((now - v.lastTime) / (24 * 3600000L)).toInt()
             val decay = days / 7 * 20
             v.copy(score = (v.score - decay).coerceAtLeast(0))
-        }.sortedWith { a, b ->
+        }.filter { it.score > 0 }.sortedWith { a, b ->
             if (a.score > b.score) -1
             else if (a.score < b.score) 1
             else if (a.lastTime > b.lastTime) -1
