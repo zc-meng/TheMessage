@@ -149,6 +149,8 @@ object Statistics {
     fun getScore(name: String) = playerInfoMap[name]?.score
     fun getScore(player: Player) =
         if (player is HumanPlayer) getScore(player.playerName) else robotInfoMap[player.playerName]?.score
+    fun getScore2(player: Player) =
+        if (player is HumanPlayer) playerInfoMap[player.playerName]?.scoreWithDecay else robotInfoMap[player.playerName]?.score
 
     fun updateTitle(name: String, title: String): Boolean {
         var succeed = false
@@ -396,7 +398,14 @@ object Statistics {
         val forbidUntil: Long,
         val title: String,
         val lastTime: Long,
-    )
+    ) {
+        val scoreWithDecay: Int
+            get() {
+                val days = ((System.currentTimeMillis() - lastTime) / (24 * 3600000L)).toInt()
+                val decay = days / 7 * 20
+                return (score - decay).coerceAtLeast(0)
+            }
+    }
 
     data class RobotInfo(
         val name: String,

@@ -12,9 +12,7 @@ class Getscore : Function<Map<String, String>, Any> {
             if (playerInfo == null) {
                 "{\"result\": \"${name}已身死道消\"}"
             } else {
-                val days = ((System.currentTimeMillis() - playerInfo.lastTime) / (24 * 3600000L)).toInt()
-                val decay = days / 7 * 20
-                val score = (playerInfo.score - decay).coerceAtLeast(0)
+                val score = playerInfo.scoreWithDecay
                 val rank = ScoreFactory.getRankNameByScore(score)
                 val winRate =
                     if (playerInfo.gameCount == 0) "0.00%"
