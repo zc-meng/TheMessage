@@ -208,7 +208,8 @@ object Image {
         g.drawString("最近一局", CELL_W * 6 + font.size * 2 + 3, CELL_H - 3)
         val g1 = Gradient(lines.map { it.score.toDouble() }, minColor = Color.WHITE, aveColor = aveColor)
         val g2 = Gradient(lines.map { it.gameCount.toDouble() }, minColor = Color.WHITE, aveColor = aveColor)
-        val g3 = Gradient(lines.map { PlayerGameCount(it.winCount, it.gameCount).rate.coerceIn(8.0..50.0) })
+        val g3 = Gradient(lines.filter { it.gameCount > 0 }
+            .map { PlayerGameCount(it.winCount, it.gameCount).rate.coerceIn(8.0..50.0) })
         val g4 = Gradient(lines.mapNotNull { if (it.lastTime == 0L) null else it.lastTime.toDouble() })
         lines.forEachIndexed { index, line ->
             val rank = ScoreFactory.getRankStringNameByScore(line.score)
@@ -222,10 +223,12 @@ object Image {
             g.fillRect(CELL_W * 4 + font.size * 2, (index + 1) * CELL_H, CELL_W, CELL_H)
             g.color = Color.BLACK
             g.drawString(count.gameCount.toString(), CELL_W * 4 + font.size * 2 + 3, (index + 2) * CELL_H - 3)
-            g.color = g3.getColor(count.rate)
-            g.fillRect(CELL_W * 5 + font.size * 2, (index + 1) * CELL_H, CELL_W, CELL_H)
-            g.color = Color.BLACK
-            g.drawString("%.2f%%".format(count.rate), CELL_W * 5 + font.size * 2 + 3, (index + 2) * CELL_H - 3)
+            if (line.gameCount > 0) {
+                g.color = g3.getColor(count.rate)
+                g.fillRect(CELL_W * 5 + font.size * 2, (index + 1) * CELL_H, CELL_W, CELL_H)
+                g.color = Color.BLACK
+                g.drawString("%.2f%%".format(count.rate), CELL_W * 5 + font.size * 2 + 3, (index + 2) * CELL_H - 3)
+            }
             if (line.lastTime > 0) {
                 g.color = g4.getColor(line.lastTime.toDouble())
                 g.fillRect(CELL_W * 6 + font.size * 2, (index + 1) * CELL_H, CELL_W + font.size * 2, CELL_H)
