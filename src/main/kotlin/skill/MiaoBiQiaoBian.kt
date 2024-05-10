@@ -110,6 +110,7 @@ class MiaoBiQiaoBian : ActiveSkill {
                     for (p in g.players) {
                         if (p!!.alive) {
                             for (c in p.messageCards.sortCards(r.identity)) {
+                                c !== fsm.messageCard || continue
                                 !card1.hasSameColor(c) || continue
                                 val v = r.calculateRemoveCardValue(fsm.whoseTurn, p, c)
                                 if (v > value) {
@@ -216,6 +217,7 @@ class MiaoBiQiaoBian : ActiveSkill {
             for (p in g.players) {
                 if (p!!.alive) {
                     for (c in p.messageCards.sortCards(player.identity)) {
+                        c !== e.messageCard || continue
                         val v = player.calculateRemoveCardValue(e.whoseTurn, p, c)
                         if (v > value) {
                             value = v
