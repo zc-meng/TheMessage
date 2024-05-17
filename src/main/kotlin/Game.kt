@@ -21,9 +21,12 @@ import com.google.protobuf.util.JsonFormat
 import io.netty.util.Timeout
 import org.apache.logging.log4j.kotlin.logger
 import java.io.IOException
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.random.Random
 
 class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
@@ -171,6 +174,9 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     fun end(declaredWinners: List<Player>?, winners: List<Player>?, forceEnd: Boolean = false) {
         isEnd = true
+        val c = Calendar.getInstance(TimeZone.getTimeZone("GMT+8:00"))
+        val isDouble = c.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.FRIDAY, Calendar.SATURDAY, Calendar.SUNDAY) &&
+            c.get(Calendar.HOUR_OF_DAY) in 18 until 24
         val humanPlayers = players.filterIsInstance<HumanPlayer>()
         val addScoreMap = HashMap<String, Int>()
         val newScoreMap = HashMap<String, Int>()
@@ -182,7 +188,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                     val totalLoser = totalPlayers - totalWinners
                     val delta = totalLoser / (players.size - winners.size) - totalWinners / winners.size
                     for ((i, p) in players.withIndex()) {
-                        val score = p!!.calScore(players.filterNotNull(), winners, delta / 10)
+                        var score = p!!.calScore(players.filterNotNull(), winners, delta / 10)
+                        if (isDouble && score > 0) score *= 2
                         val (newScore, deltaScore) = Statistics.updateScore(p, score, i == humanPlayers.size - 1)
                         logger.info("$p(${p.originIdentity},${p.originSecretTask})得${score}分，新分数为：$newScore")
                         addScoreMap[p.playerName] = deltaScore
