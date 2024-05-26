@@ -108,9 +108,13 @@ object QQPusher {
             .header("Authorization", "Bearer ${Config.MiraiVerifyKey}")
             .url("${Config.MiraiHttpUrl}/send_group_msg").post(postData).build()
         val resp = client.newCall(request).execute()
+        if (resp.code != 200) {
+            resp.close()
+            throw Exception("sendGroupMessage failed, status code: ${resp.code}")
+        }
         val json = gson.fromJson(resp.body!!.string(), JsonElement::class.java)
-        val code = json.asJsonObject["code"].asInt
-        if (code != 0) throw Exception("sendGroupMessage failed: $code")
+        val code = json.asJsonObject["retcode"].asInt
+        if (code != 0) throw Exception("sendGroupMessage failed, retcode: $code")
     }
 
     private val client = OkHttpClient().newBuilder().connectTimeout(Duration.ofMillis(20000)).build()
