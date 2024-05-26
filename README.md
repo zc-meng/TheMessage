@@ -106,11 +106,16 @@ push.push_qq_groups=12345678
 
 将配置文件`application.properties`中的`push.enable_push`设置为`true`，就可以开启将战绩推送到QQ群的功能。
 
-想要把战绩推送到QQ群，你应该知道如何使用[mirai](https://github.com/mamoe/mirai)进行登录，并安装[mirai-api-http](https://github.com/project-mirai/mirai-api-http)插件。
+在使用推送功能之前，你应该首先自行搭建一个支持 [onebot-11](https://github.com/botuniverse/onebot-11) 接口的QQ机器人。例如：
 
-请多参阅mirai-api-http的[文档](https://docs.mirai.mamoe.net/mirai-api-http/api/API.html)。
+- [NapCat](https://github.com/NapNeko/NapCatQQ) 基于NTQQ的无头Bot框架
+- [OpenShamrock](https://github.com/whitechi73/OpenShamrock) 基于 Lsposed(Non-Riru) 实现 Kritor 标准的 QQ 机器人框架
+- [Lagrange](https://github.com/LagrangeDev/Lagrange.Core) 一个基于纯C#的NTQQ协议实现，源自Konata.Core
+- [LiteLoaderQQNT](https://github.com/LiteLoaderQQNT/LiteLoaderQQNT) QQNT 插件加载器
+- [Gensokyo](https://github.com/Hoshinonyaruko/Gensokyo) 基于qq官方api开发的符合onebot标准的golang实现，轻量、原生跨平台
 
-本项目使用http接口，因此你需要修改mirai的配置文件`config/net.mamoe.mirai-api-http/setting.yml`，开启http监听。
+> [!IMPORTANT]
+> 本功能是基于onebot的正向http接口，因此你需要开启对应机器人项目的http监听。
 
 *纯人机局不会推送，至少要有2名真人玩家时才会推送。*
 

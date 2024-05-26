@@ -16,7 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.logging.log4j.kotlin.logger
 import java.time.Duration
 
-object MiraiPusher {
+object QQPusher {
     private val mu = Mutex()
     private val notifyQueueOnStart = HashSet<Long>()
     private val notifyQueueOnEnd = HashSet<Long>()
@@ -40,10 +40,7 @@ object MiraiPusher {
             @OptIn(DelicateCoroutinesApi::class)
             GlobalScope.launch {
                 try {
-                    val session = verify()
-                    bind(session)
-                    Config.PushQQGroups.forEach { sendGroupMessage(session, it, "开了", *at) }
-                    release(session)
+                    Config.PushQQGroups.forEach { sendGroupMessage(it, "开了", *at) }
                 } catch (e: Throwable) {
                     logger.error("catch throwable", e)
                 }
@@ -93,56 +90,27 @@ object MiraiPusher {
         @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.launch {
             try {
-                val session = verify()
-                bind(session)
-                Config.PushQQGroups.forEach { sendGroupMessage(session, it, text, *at) }
-                release(session)
+                Config.PushQQGroups.forEach { sendGroupMessage(it, text, *at) }
             } catch (e: Throwable) {
                 logger.error("catch throwable", e)
             }
         }
     }
 
-    private fun verify(): String {
-        val postData = """{"verifyKey":"${Config.MiraiVerifyKey}"}""".toRequestBody(contentType)
-        val request = Request.Builder().url("${Config.MiraiHttpUrl}/verify").post(postData).build()
-        val resp = client.newCall(request).execute()
-        val json = gson.fromJson(resp.body!!.string(), JsonElement::class.java)
-        val code = json.asJsonObject["code"].asInt
-        if (code != 0) throw Exception("verify failed: $code")
-        return json.asJsonObject["session"].asString
-    }
-
-    private fun bind(sessionKey: String) {
-        val postData = """{"sessionKey":"$sessionKey","qq":${Config.RobotQQ}}""".toRequestBody(contentType)
-        val request = Request.Builder().url("${Config.MiraiHttpUrl}/bind").post(postData).build()
-        val resp = client.newCall(request).execute()
-        val json = gson.fromJson(resp.body!!.string(), JsonElement::class.java)
-        val code = json.asJsonObject["code"].asInt
-        if (code != 0) throw Exception("bind failed: $code")
-    }
-
-    private fun sendGroupMessage(sessionKey: String, groupId: Long, message: String, vararg at: Long) {
-        val atStr = at.joinToString(separator = "") { "{\"type\":\"At\",\"target\":$it}," }
+    private fun sendGroupMessage(groupId: Long, message: String, vararg at: Long) {
+        val atStr = at.joinToString(separator = "") { "{\"type\":\"at\",\"data\":{\"qq\":$it}}," }
         val postData = """{
-            "sessionKey":"$sessionKey",
-            "target":$groupId,
-            "messageChain":[$atStr{"type":"Plain","text":"$message"}]
+            "group_id":$groupId,
+            "message":[$atStr{"type":"text","data":{"text":"$message"}}]
         }""".trimMargin().toRequestBody(contentType)
-        val request = Request.Builder().url("${Config.MiraiHttpUrl}/sendGroupMessage").post(postData).build()
+        val request = Request.Builder()
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer ${Config.MiraiVerifyKey}")
+            .url("${Config.MiraiHttpUrl}/send_group_msg").post(postData).build()
         val resp = client.newCall(request).execute()
         val json = gson.fromJson(resp.body!!.string(), JsonElement::class.java)
         val code = json.asJsonObject["code"].asInt
         if (code != 0) throw Exception("sendGroupMessage failed: $code")
-    }
-
-    private fun release(sessionKey: String) {
-        val postData = """{"sessionKey":"$sessionKey","qq":${Config.RobotQQ}}""".toRequestBody(contentType)
-        val request = Request.Builder().url("${Config.MiraiHttpUrl}/release").post(postData).build()
-        val resp = client.newCall(request).execute()
-        val json = gson.fromJson(resp.body!!.string(), JsonElement::class.java)
-        val code = json.asJsonObject["code"].asInt
-        if (code != 0) throw Exception("release failed: $code")
     }
 
     private val client = OkHttpClient().newBuilder().connectTimeout(Duration.ofMillis(20000)).build()

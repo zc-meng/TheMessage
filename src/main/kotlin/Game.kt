@@ -103,7 +103,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         players.all { it != null } || return
         !isStarted || return
         isStarted = true
-        MiraiPusher.notifyStart()
+        QQPusher.notifyStart()
         val identities = ArrayList<color>()
         when (players.size) {
             2 -> Random.nextInt(4).let {
@@ -218,7 +218,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 Statistics.addPlayerGameCount(playerGameResultList)
                 Statistics.calculateRankList()
                 if (humanPlayers.size > 1)
-                    MiraiPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap)
+                    QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap)
             }
             players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
         }
