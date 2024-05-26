@@ -81,7 +81,7 @@ object QQPusher {
             val rank = ScoreFactory.getRankNameByScore(newScore)
             lines.add("$name,$roleName,$identity,$result,$rank,$newScore($addScoreStr)")
         }
-        val text = lines.joinToString(separator = "\n")
+        val text = lines.joinToString(separator = "\\n")
         val at = runBlocking {
             mu.withLock {
                 notifyQueueOnEnd.toLongArray().apply { notifyQueueOnEnd.clear() }
