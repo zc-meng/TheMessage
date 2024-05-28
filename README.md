@@ -127,6 +127,15 @@ push.push_qq_groups=12345678
 
 ## 开发相关
 
+### gradle镜像
+
+如果gradle下载太慢，可以修改`gradle/wrapper/gradle-wrapper.properties`中的`distributionUrl`：
+
+```diff
+-distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-bin.zip
++distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.7-bin.zip
+```
+
 ### IDEA问题
 
 如遇IDEA提示“代码洞察功能不可用”，是因为role.proto生成的协议文件太大导致的，在帮助菜单中编辑一下IDEA的自定义属性`idea.properties`
