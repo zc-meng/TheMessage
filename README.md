@@ -132,8 +132,8 @@ push.push_qq_groups=12345678
 如果gradle下载太慢，可以修改`gradle/wrapper/gradle-wrapper.properties`中的`distributionUrl`：
 
 ```diff
--distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-bin.zip
-+distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.7-bin.zip
+- distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-bin.zip
++ distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.7-bin.zip
 ```
 
 ### IDEA问题
