@@ -47,7 +47,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     var possibleSecretTasks: List<secret_task> = emptyList()
     var turn = 0
     val isEarly: Boolean
-        get() = turn <= players.size - players.size / 2
+        get() = turn <= players.size
 
     /**
      * 用于出牌阶段结束时提醒还未发动的技能
