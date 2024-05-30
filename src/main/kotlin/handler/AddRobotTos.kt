@@ -1,19 +1,18 @@
 package com.fengsheng.handler
 
-import com.fengsheng.*
+import com.fengsheng.HumanPlayer
+import com.fengsheng.Player
+import com.fengsheng.RobotPlayer
+import com.fengsheng.Statistics
 import com.fengsheng.protos.Fengsheng
-import org.apache.logging.log4j.kotlin.logger
 
 class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
     override fun handle0(r: HumanPlayer, pb: Fengsheng.add_robot_tos) {
         if (r.game!!.isStarted) {
-            logger.error("the game has already started")
-            r.sendErrorMessage("游戏已经开始了")
             return
         }
         val emptyPosition = r.game!!.players.count { it == null }
         if (emptyPosition == 0) {
-            r.sendErrorMessage("房间已满，不能添加机器人")
             return
         }
 //        if (!Config.IsGmEnable) {

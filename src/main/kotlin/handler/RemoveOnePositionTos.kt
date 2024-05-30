@@ -1,6 +1,7 @@
 package com.fengsheng.handler
 
-import com.fengsheng.*
+import com.fengsheng.Config
+import com.fengsheng.HumanPlayer
 import com.fengsheng.protos.Fengsheng
 import com.fengsheng.protos.removeOnePositionToc
 import org.apache.logging.log4j.kotlin.logger
@@ -8,14 +9,11 @@ import org.apache.logging.log4j.kotlin.logger
 class RemoveOnePositionTos : AbstractProtoHandler<Fengsheng.remove_one_position_tos>() {
     override fun handle0(r: HumanPlayer, pb: Fengsheng.remove_one_position_tos) {
         if (r.game!!.isStarted) {
-            logger.error("game already started")
-            r.sendErrorMessage("游戏已经开始了")
             return
         }
         val oldPlayers = r.game!!.players
         val index = oldPlayers.indexOfFirst { p -> p == null }
         if (index < 0) {
-            r.sendErrorMessage("已经没有空位了")
             return
         }
         if (oldPlayers.size <= 2) {

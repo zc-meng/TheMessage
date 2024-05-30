@@ -25,8 +25,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.random.Random
 
 class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
@@ -57,7 +55,16 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     var mainPhaseAlreadyNotify = false
 
     fun setStartTimer() {
-        val delay = if (Config.IsGmEnable || players.count { it is HumanPlayer } <= 1) 0L else 5L
+        val delay = when {
+            Config.IsGmEnable -> 0L // 测试环境直接开
+            players.count { it is HumanPlayer } > 1 -> 5L // 非单人局等5秒
+            // 单人人机局的真人玩家低于60分直接开
+            players.all { it !is HumanPlayer || (Statistics.getScore2(it) ?: 0) < 60 } -> 0L
+            else -> { // 其它单人人机局等5秒，提示不算分
+                players.forEach { it?.sendErrorMessage("你现在已经是高手了，单人人机局不算分，邀请一个朋友一起玩吧。") }
+                5L
+            }
+        }
         gameStartTimeout = GameExecutor.post(this, { start() }, delay, TimeUnit.SECONDS)
     }
 
