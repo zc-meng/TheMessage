@@ -63,6 +63,7 @@ object QQPusher {
             var roleName = player.roleName
             if (player.role != player.originRole)
                 RoleCache.getRoleName(player.originRole)?.let { roleName += "(原$it)" }
+            if (!player.alive) roleName += "(死亡)"
             var identity = Player.identityColorToString(player.identity, player.secretTask)
             if (player.identity != player.originIdentity || player.secretTask != player.originSecretTask)
                 identity += "(原${Player.identityColorToString(player.originIdentity, player.originSecretTask)})"
