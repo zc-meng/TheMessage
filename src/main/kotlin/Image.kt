@@ -212,7 +212,7 @@ object Image {
         val g3 = Gradient(lines.filter { it.gameCount > 0 }
             .map { PlayerGameCount(it.winCount, it.gameCount).rate.coerceIn(8.0..50.0) })
         val g4 = Gradient(lines.mapNotNull { if (it.lastTime == 0L) null else it.lastTime.toDouble() })
-        val g5 = Gradient(lines.map { it.energy.toDouble() })
+        val g5 = Gradient(lines.map { it.energy.toDouble() }, minColor = Color.WHITE, aveColor = aveColor)
         lines.forEachIndexed { index, line ->
             val rank = ScoreFactory.getRankStringNameByScore(line.score)
             g.color = g1.getColor(line.score.toDouble())
