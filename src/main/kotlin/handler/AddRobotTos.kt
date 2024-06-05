@@ -1,9 +1,6 @@
 package com.fengsheng.handler
 
-import com.fengsheng.HumanPlayer
-import com.fengsheng.Player
-import com.fengsheng.RobotPlayer
-import com.fengsheng.Statistics
+import com.fengsheng.*
 import com.fengsheng.protos.Fengsheng
 
 class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
@@ -15,7 +12,7 @@ class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
         if (emptyPosition == 0) {
             return
         }
-//        if (!Config.IsGmEnable) {
+        if (!Config.IsGmEnable) {
 //            val score = Statistics.getScore(r.playerName) ?: 0
 //            if (score <= 0) {
 //                val now = System.currentTimeMillis()
@@ -27,12 +24,13 @@ class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
 //                    return
 //                }
 //            }
-//            val humanCount = r.game!!.players.count { it is HumanPlayer }
-//            if (humanCount <= 1 && emptyPosition == 1 && (Statistics.getScore(r.playerName) ?: 0) >= 60) {
-//                r.sendErrorMessage("至少要2人才能开始游戏")
-//                return
-//            }
-//        }
+            val humanCount = r.game!!.players.count { it is HumanPlayer }
+            if (humanCount <= 1 && emptyPosition == 1 && (Statistics.getScore(r) ?: 0) >= 60 &&
+                Statistics.getEnergy(r.playerName) <= 0) {
+                r.sendErrorMessage("你的精力不足，不能进行人机局。与至少一位朋友一起游戏可获得精力。")
+                return
+            }
+        }
         val robotPlayer = RobotPlayer()
         robotPlayer.playerName = Player.randPlayerName(r.game!!)
         robotPlayer.game = r.game

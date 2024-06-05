@@ -14,10 +14,12 @@ class Getscore : Function<Map<String, String>, Any> {
             } else {
                 val score = playerInfo.scoreWithDecay
                 val rank = ScoreFactory.getRankNameByScore(score)
+                val total = playerInfo.gameCount
                 val winRate =
                     if (playerInfo.gameCount == 0) "0.00%"
-                    else "%.2f%%".format(playerInfo.winCount * 100.0 / playerInfo.gameCount)
-                "{\"result\": \"$name·$rank·$score，总场次：${playerInfo.gameCount}，胜率：$winRate\"}"
+                    else "%.2f%%".format(playerInfo.winCount * 100.0 / total)
+                val energy = playerInfo.energy
+                "{\"result\": \"$name·$rank·$score，总场次：$total，胜率：$winRate，精力：$energy\"}"
             }
         } catch (e: NullPointerException) {
             "{\"error\": \"参数错误\"}"

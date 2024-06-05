@@ -55,16 +55,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     var mainPhaseAlreadyNotify = false
 
     fun setStartTimer() {
-        val delay = when {
-            Config.IsGmEnable -> 0L // 测试环境直接开
-            players.count { it is HumanPlayer } > 1 -> 5L // 非单人局等5秒
-            // 单人人机局的真人玩家低于60分直接开
-            players.all { it !is HumanPlayer || (Statistics.getScore2(it) ?: 0) < 60 } -> 0L
-            else -> { // 其它单人人机局等5秒，提示不算分
-                players.forEach { it?.sendErrorMessage("你现在已经是高手了，单人人机局不算分，邀请一个朋友一起玩吧。") }
-                5L
-            }
-        }
+        val delay = if (Config.IsGmEnable || players.count { it is HumanPlayer } <= 1) 0L else 5L
         gameStartTimeout = GameExecutor.post(this, { start() }, delay, TimeUnit.SECONDS)
     }
 
@@ -188,7 +179,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         val addScoreMap = HashMap<String, Int>()
         val newScoreMap = HashMap<String, Int>()
         if (declaredWinners != null && winners != null) {
-            if (players.size >= 5 && (humanPlayers.size > 1 || humanPlayers.any { (Statistics.getScore2(it) ?: 0) < 60 })) {
+            if (players.size >= 5) {
                 if (winners.isNotEmpty() && winners.size < players.size) {
                     val totalWinners = winners.sumOf { (Statistics.getScore(it) ?: 0).coerceIn(180..1900) }
                     val totalPlayers = players.sumOf { (Statistics.getScore(it!!) ?: 0).coerceIn(180..1900) }
@@ -220,6 +211,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                     Statistics.add(records)
                 }
                 for (p in humanPlayers) {
+                    if (humanPlayers.size <= 1) Statistics.addEnergy(p.playerName, -1)
+                    else Statistics.addEnergy(p.playerName, humanPlayers.size * 2)
                     playerGameResultList.add(PlayerGameResult(p.playerName, winners.any { it === p }))
                 }
                 Statistics.addPlayerGameCount(playerGameResultList)
