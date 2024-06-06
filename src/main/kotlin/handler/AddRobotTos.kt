@@ -25,9 +25,8 @@ class AddRobotTos : AbstractProtoHandler<Fengsheng.add_robot_tos>() {
 //                }
 //            }
             val humanCount = r.game!!.players.count { it is HumanPlayer }
-            if (humanCount <= 1 && emptyPosition == 1 && (Statistics.getScore(r) ?: 0) >= 60 &&
-                Statistics.getEnergy(r.playerName) <= 0) {
-                r.sendErrorMessage("你的精力不足，不能进行人机局。与至少一位朋友一起游戏可获得精力。")
+            if (humanCount <= 1 && emptyPosition == 1 && Statistics.getEnergy(r.playerName) <= 0) {
+                r.sendErrorMessage("你的精力不足，不能进行人机局。签到或者与朋友一起游戏可获得精力。")
                 return
             }
         }

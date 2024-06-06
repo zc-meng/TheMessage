@@ -101,6 +101,7 @@ push.push_qq_groups=12345678
 | /winrate          | 无                                | 返回一张胜率统计的png图片                                                                         |
 | /updatetitle      | name=aaa&title=bbb               | 更新玩家的称号，其中name是用户名，title是称号，title为空就是删除称号                                              |
 | /resetseason      | 无                                | 重置赛季，重置前请手动备份PlayerInfo.csv                                                            |
+| /addenergy        | name=aaa&energy=1                | 增加精力                                                                                   |
 
 ## 把战绩推送到QQ群
 
