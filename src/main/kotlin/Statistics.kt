@@ -152,10 +152,15 @@ object Statistics {
     fun getScore2(player: Player) =
         if (player is HumanPlayer) playerInfoMap[player.playerName]?.scoreWithDecay else robotInfoMap[player.playerName]?.score
     fun getEnergy(name: String) = playerInfoMap[name]?.energy ?: 0
-    fun addEnergy(name: String, energy: Int): Boolean {
-        return playerInfoMap.computeIfPresent(name) { _, v ->
+    fun addEnergy(name: String, energy: Int, save: Boolean = false): Boolean {
+        val ok = playerInfoMap.computeIfPresent(name) { _, v ->
             v.copy(energy = (v.energy + energy).coerceAtLeast(0))
         } != null
+        if (ok && save) {
+            pool.trySend(::savePlayerInfo)
+            calculateRankList()
+        }
+        return ok
     }
 
     fun updateTitle(name: String, title: String): Boolean {

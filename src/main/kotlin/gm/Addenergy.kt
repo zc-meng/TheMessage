@@ -8,7 +8,7 @@ class Addenergy : Function<Map<String, String>, Any> {
         return try {
             val name = form["name"]!!
             val energy = form["energy"]!!.toInt()
-            val result = Statistics.addEnergy(name, energy)
+            val result = Statistics.addEnergy(name, energy, true)
             "{\"result\": $result}"
         } catch (e: NumberFormatException) {
             "{\"error\": \"参数错误\"}"
