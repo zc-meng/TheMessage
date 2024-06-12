@@ -199,18 +199,6 @@ object ScoreFactory : Logging {
                 }
             }
         }
-
-        val c = Calendar.getInstance(TimeZone.getTimeZone("GMT+8:00"))
-        val dayOfWeekName = when (c.get(Calendar.DAY_OF_WEEK)) {
-            Calendar.SUNDAY -> "星期日"
-            Calendar.MONDAY -> "星期一"
-            Calendar.TUESDAY -> "星期二"
-            Calendar.WEDNESDAY -> "星期三"
-            Calendar.THURSDAY -> "星期四"
-            Calendar.FRIDAY -> "星期五"
-            else -> "星期六"
-        }
-        logger.info("现在是$dayOfWeekName${c.get(Calendar.HOUR_OF_DAY)}时")
     }
 
     private val playerCountCount = ConcurrentHashMap<Int, MutableList<PlayerGameCount>>()

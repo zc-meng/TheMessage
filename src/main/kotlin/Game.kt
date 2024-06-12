@@ -21,7 +21,6 @@ import com.google.protobuf.util.JsonFormat
 import io.netty.util.Timeout
 import org.apache.logging.log4j.kotlin.logger
 import java.io.IOException
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -172,15 +171,13 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     fun end(declaredWinners: List<Player>?, winners: List<Player>?, forceEnd: Boolean = false) {
         isEnd = true
-        val c = Calendar.getInstance(TimeZone.getTimeZone("GMT+8:00"))
-        val isDouble = c.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.FRIDAY, Calendar.SATURDAY, Calendar.SUNDAY) &&
-            c.get(Calendar.HOUR_OF_DAY) in 18 until 24
         val humanPlayers = players.filterIsInstance<HumanPlayer>()
         val addScoreMap = HashMap<String, Int>()
         val newScoreMap = HashMap<String, Int>()
         if (declaredWinners != null && winners != null) {
             if (players.size >= 5) {
                 if (winners.isNotEmpty() && winners.size < players.size) {
+                    val isDouble = humanPlayers.size >= 4
                     val totalWinners = winners.sumOf { (Statistics.getScore(it) ?: 0).coerceIn(180..1900) }
                     val totalPlayers = players.sumOf { (Statistics.getScore(it!!) ?: 0).coerceIn(180..1900) }
                     val totalLoser = totalPlayers - totalWinners
@@ -424,6 +421,18 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
         val onlineCount: Int
             get() = gameCache.values.sumOf { it.players.count { p -> p != null } }
+
+        val humanPlayerCount: Pair<Int, Int>
+            get() {
+                var roomCount = 0
+                var humanCount = 0
+                gameCache.values.forEach {
+                    val c = it.players.count { p -> p is HumanPlayer }
+                    humanCount += c
+                    if (c > 0) roomCount++
+                }
+                return roomCount to humanCount
+            }
 
         val inGameCount: Int
             get() = gameCache.values.count { it.isStarted }

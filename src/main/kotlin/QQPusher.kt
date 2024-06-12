@@ -15,11 +15,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.logging.log4j.kotlin.logger
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicLong
 
 object QQPusher {
     private val mu = Mutex()
     private val notifyQueueOnStart = HashSet<Long>()
     private val notifyQueueOnEnd = HashSet<Long>()
+    private val lastPushTime = AtomicLong()
+    private val lastAtAllTime = AtomicLong()
 
     fun addIntoNotifyQueue(qq: Long, onStart: Boolean) = runBlocking {
         mu.withLock {
@@ -31,16 +34,29 @@ object QQPusher {
     }
 
     fun notifyStart() {
+        var atAll = false
+        var s: String? = null
+        val (r, h) = Game.humanPlayerCount
+        if (h >= 3) {
+            val now = System.currentTimeMillis()
+            val last = lastPushTime.get()
+            if (now - last >= 3600000 && lastPushTime.compareAndSet(last, now))
+                s = "当前有${h}位群友在${r}桌房间进行游戏"
+            val last2 = lastAtAllTime.get()
+            if (now - last2 >= 12 * 3600000 && lastAtAllTime.compareAndSet(last2, now))
+                atAll = true
+        }
         val at = runBlocking {
             mu.withLock {
                 notifyQueueOnStart.toLongArray().apply { notifyQueueOnStart.clear() }
             }
         }
-        if (at.isNotEmpty()) {
+        if (at.isNotEmpty() || s != null) {
+            s = s ?: "开了"
             @OptIn(DelicateCoroutinesApi::class)
             GlobalScope.launch {
                 try {
-                    Config.PushQQGroups.forEach { sendGroupMessage(it, "开了", *at) }
+                    Config.PushQQGroups.forEach { sendGroupMessage(it, s, atAll, *at) }
                 } catch (e: Throwable) {
                     logger.error("catch throwable", e)
                 }
@@ -91,15 +107,17 @@ object QQPusher {
         @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.launch {
             try {
-                Config.PushQQGroups.forEach { sendGroupMessage(it, text, *at) }
+                Config.PushQQGroups.forEach { sendGroupMessage(it, text, false, *at) }
             } catch (e: Throwable) {
                 logger.error("catch throwable", e)
             }
         }
     }
 
-    private fun sendGroupMessage(groupId: Long, message: String, vararg at: Long) {
-        val atStr = at.joinToString(separator = "") { "{\"type\":\"at\",\"data\":{\"qq\":$it}}," }
+    private fun sendGroupMessage(groupId: Long, message: String, atAll: Boolean, vararg at: Long) {
+        val atStr =
+            if (atAll) "{\"type\":\"at\",\"data\":{\"qq\":\"all\"}},"
+            else at.joinToString(separator = "") { "{\"type\":\"at\",\"data\":{\"qq\":\"$it\"}}," }
         val postData = """{
             "group_id":$groupId,
             "message":[$atStr{"type":"text","data":{"text":"$message"}}]
