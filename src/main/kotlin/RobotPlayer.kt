@@ -348,7 +348,6 @@ class RobotPlayer : Player() {
             JIAN_REN to JianRen::ai,
             CHI_ZI_ZHI_XIN to ChiZiZhiXin::ai,
             LIAN_XIN to LianXin::ai,
-            MI_XIN to MiXin::ai,
             JIAN_DI_FENG_XING to JianDiFengXing::ai,
             ZHUANG_ZHI_MAN_HUAI to ZhuangZhiManHuai::ai,
             AN_CANG_SHA_JI to AnCangShaJi::ai,
