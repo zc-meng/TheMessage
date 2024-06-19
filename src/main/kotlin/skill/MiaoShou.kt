@@ -5,10 +5,13 @@ import com.fengsheng.RobotPlayer.Companion.sortCards
 import com.fengsheng.card.Card
 import com.fengsheng.phase.FightPhaseIdle
 import com.fengsheng.phase.NextTurn
-import com.fengsheng.protos.*
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Role.skill_miao_shou_a_tos
 import com.fengsheng.protos.Role.skill_miao_shou_b_tos
+import com.fengsheng.protos.skillMiaoShouAToc
+import com.fengsheng.protos.skillMiaoShouATos
+import com.fengsheng.protos.skillMiaoShouBToc
+import com.fengsheng.protos.skillMiaoShouBTos
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
@@ -109,7 +112,7 @@ class MiaoShou : ActiveSkill {
                                     value = v
                                     cardId = card.id
                                     messageCardId = 0
-                                    targetPlayerId = moveTarget.location
+                                    targetPlayerId = r.getAlternativeLocation(moveTarget.location)
                                 }
                             }
                         }
@@ -121,7 +124,7 @@ class MiaoShou : ActiveSkill {
                                     value = v
                                     cardId = 0
                                     messageCardId = card.id
-                                    targetPlayerId = moveTarget.location
+                                    targetPlayerId = r.getAlternativeLocation(moveTarget.location)
                                 }
                             }
                         }
