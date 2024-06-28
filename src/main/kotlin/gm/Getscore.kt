@@ -19,7 +19,9 @@ class Getscore : Function<Map<String, String>, Any> {
                     if (playerInfo.gameCount == 0) "0.00%"
                     else "%.2f%%".format(playerInfo.winCount * 100.0 / total)
                 val energy = playerInfo.energy
-                "{\"result\": \"$name·$rank·$score，总场次：$total，胜率：$winRate，精力：$energy\"}"
+                var s = "$name·$rank·$score，总场次：$total，胜率：$winRate，精力：$energy"
+                if (playerInfo.score != score) s += "（长期不打会掉分，打一场即可全部恢复）"
+                "{\"result\": \"$s\"}"
             }
         } catch (e: NullPointerException) {
             "{\"error\": \"参数错误\"}"
