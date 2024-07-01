@@ -183,7 +183,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                     val delta = totalLoser / (players.size - winners.size) - totalWinners / winners.size
                     for ((i, p) in players.withIndex()) {
                         var score = p!!.calScore(players.filterNotNull(), winners, delta / 10)
-                        if (humanPlayers.size > 1) score += 2 * humanPlayers.size
+                        if (score > 0 && humanPlayers.size > 1) score += 2 * humanPlayers.size
                         val (newScore, deltaScore) = Statistics.updateScore(p, score, i == humanPlayers.size - 1)
                         logger.info("$p(${p.originIdentity},${p.originSecretTask})得${score}分，新分数为：$newScore")
                         addScoreMap[p.playerName] = deltaScore
