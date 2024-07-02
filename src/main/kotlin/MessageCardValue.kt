@@ -488,10 +488,17 @@ fun Player.calSendMessageCard(
         }
         return sum / n
     }
-
+    val notUp = game!!.isEarly && !isYuQinGuZong && identity != Black && !skills.any { it is LianLuo } &&
+        availableCards.any { card ->
+            !card.isPureBlack() && when (card.direction) {
+                Left -> calAveValue(card, 0.7, Player::getNextLeftAlivePlayer) >= 0
+                Right -> calAveValue(card, 0.7, Player::getNextRightAlivePlayer) >= 0
+                else -> false
+            }
+        }
     for (card in availableCards.sortCards(identity, true)) {
         val removedCard = if (isYuQinGuZong) deleteMessageCard(card.id) else null
-        if (card.direction == Up || skills.any { it is LianLuo }) {
+        if (!notUp && (card.direction == Up || skills.any { it is LianLuo })) {
             val (partner, enemy) = game!!.players.filter { it !== this && it!!.alive }.partition { isPartner(it!!) }
             for (target in partner.shuffled() + enemy.shuffled()) {
                 val tmpValue = calAveValue(card, 0.0) { if (this === target) this@calSendMessageCard else target!! }
