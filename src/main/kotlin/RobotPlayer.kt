@@ -185,9 +185,9 @@ class RobotPlayer : Player() {
             val ai = aiSkillFightPhase1[skill.skillId] ?: continue
             if (ai(fsm, skill as? ActiveSkill)) return
         }
-        if (!game!!.isEarly || this === fsm.whoseTurn || game!!.players.any {
-                isPartnerOrSelf(it!!) && it.willDie(fsm.messageCard)
-            } || calculateMessageCardValue(fsm.whoseTurn, fsm.inFrontOfWhom, fsm.messageCard) <= -110) {
+        if (!game!!.isEarly || this === fsm.whoseTurn ||
+            isPartnerOrSelf(fsm.inFrontOfWhom) && fsm.inFrontOfWhom.willDie(fsm.messageCard) ||
+            calculateMessageCardValue(fsm.whoseTurn, fsm.inFrontOfWhom, fsm.messageCard, sender = fsm.sender) <= -110) {
             val result = calFightPhase(fsm)
             if (result != null && result.deltaValue > 10) {
                 GameExecutor.post(game!!, {
