@@ -35,7 +35,7 @@ class XiangJinSiSuo : TriggeredSkill {
             r.game!!.players.send { player ->
                 skillWaitForXiangJinSiSuoToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = Config.WaitSecond / 2
                     if (player === r) {
                         val seq = player.seq
                         this.seq = seq
