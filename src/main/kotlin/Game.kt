@@ -419,7 +419,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         }
 
         val onlineCount: Int
-            get() = gameCache.values.sumOf { it.players.count { p -> p != null } }
+            get() = gameCache.values.sumOf { it.players.count { p -> p is HumanPlayer } }
 
         val humanPlayerCount: Pair<Int, Int>
             get() {
