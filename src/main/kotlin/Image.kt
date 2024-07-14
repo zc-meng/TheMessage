@@ -75,7 +75,7 @@ object Image {
 
         val columns = listOf(
             "角色", "场次", "总胜率", "军潜", "神秘人",
-            "镇压者", "簒夺者", "双重间谍", "诱变者", "先行者", "搅局者", "清道夫",
+            "镇压者", "簒夺者", "双面间谍", "诱变者", "先行者", "搅局者", "清道夫",
         )
         val appearCount = HashMap<Common.role, IntArray>()
         val winCount = HashMap<Common.role, IntArray>()

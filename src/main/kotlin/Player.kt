@@ -307,7 +307,7 @@ abstract class Player protected constructor() {
                 Black -> when (task) {
                     Killer -> "神秘人[镇压者]"
                     Stealer -> "神秘人[簒夺者]"
-                    Collector -> "神秘人[双重间谍]"
+                    Collector -> "神秘人[双面间谍]"
                     Mutator -> "神秘人[诱变者]"
                     Pioneer -> "神秘人[先行者]"
                     Disturber -> "神秘人[搅局者]"
