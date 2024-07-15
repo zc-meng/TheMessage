@@ -137,6 +137,14 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
             }
         }
         identities.shuffle()
+        if (!Config.IsGmEnable && players.count { it is HumanPlayer } == 1) {
+            val i = players.indexOfFirst { it is HumanPlayer }
+            if (Statistics.getScore(players[i]!!.playerName) == 0 && identities[i] == Black) { // 对于0分的新人，确保一定是阵营方
+                val j = identities.indexOfFirst { it != Black }
+                identities[i] = identities[j]
+                identities[j] = Black
+            }
+        }
         val tasks = arrayListOf(Killer, Stealer, Collector, Pioneer)
         if (players.size >= 5) tasks.addAll(listOf(Mutator, Disturber, Sweeper))
         tasks.shuffle()
