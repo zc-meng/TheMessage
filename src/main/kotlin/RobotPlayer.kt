@@ -15,6 +15,7 @@ import com.fengsheng.skill.*
 import com.fengsheng.skill.SkillId.*
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class RobotPlayer : Player() {
     override fun notifyAddHandCard(location: Int, unknownCount: Int, cards: List<Card>) {
@@ -34,9 +35,12 @@ class RobotPlayer : Player() {
         }
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
             val human = game!!.players.first { it is HumanPlayer }!!
-            if (Statistics.getScore(human.playerName) == 0 && isEnemy(human)) { // 对于0分的新人，敌方机器人一定不出牌
-                GameExecutor.post(game!!, { game!!.resolve(SendPhaseStart(this)) }, 1, TimeUnit.SECONDS)
-                return
+            if (isEnemy(human)) { // 对于低分的新人，敌方机器人可能不出牌
+                val score = Statistics.getScore(human.playerName)
+                if (score != null && score < 60 && Random.nextInt(60) >= score) {
+                    GameExecutor.post(game!!, { game!!.resolve(SendPhaseStart(this)) }, 1, TimeUnit.SECONDS)
+                    return
+                }
             }
         }
         if (cards.size > 1 || findSkill(LENG_XUE_XUN_LIAN) != null) {
@@ -173,9 +177,12 @@ class RobotPlayer : Player() {
         this === fsm.whoseFightTurn || return
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
             val human = game!!.players.first { it is HumanPlayer }!!
-            if (Statistics.getScore(human.playerName) == 0 && isEnemy(human)) { // 对于0分的新人，敌方机器人一定不出牌
-                GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
-                return
+            if (isEnemy(human)) { // 对于低分的新人，敌方机器人可能不出牌
+                val score = Statistics.getScore(human.playerName)
+                if (score != null && score < 60 && Random.nextInt(60) >= score) {
+                    GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
+                    return
+                }
             }
         }
         for (skill in skills) {
