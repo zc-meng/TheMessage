@@ -1,9 +1,7 @@
 package com.fengsheng.skill
 
 import com.fengsheng.*
-import com.fengsheng.card.count
 import com.fengsheng.phase.ReceivePhaseIdle
-import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction.Up
 import com.fengsheng.protos.Role.skill_xiang_jin_si_suo_a_tos
 import com.fengsheng.protos.skillWaitForXiangJinSiSuoToc
@@ -56,20 +54,14 @@ class XiangJinSiSuo : TriggeredSkill {
                     r.game!!.tryContinueResolveProtocol(r, skillXiangJinSiSuoATos {
                         enable = true
                         targetPlayerId = r.getAlternativeLocation(event.targetPlayer.location)
-                        if (event.dir == Up && r.identity != Black && event.targetPlayer.identity == r.identity &&
-                            event.sender.identity == r.identity && r.identity in event.messageCard.colors
-                        ) {
-                            val other = if (r === event.sender) event.targetPlayer else event.sender
-                            val count1 = r.messageCards.count(r.identity)
-                            val count2 = other.messageCards.count(r.identity)
-                            val countB1 = r.messageCards.count(Black)
-                            val countB2 = other.messageCards.count(Black)
-                            targetPlayerId = when {
-                                count1 > count2 -> 0
-                                count1 < count2 -> r.getAlternativeLocation(other.location)
-                                countB1 > countB2 -> r.getAlternativeLocation(other.location)
-                                else -> 0
-                            }
+                        if (event.dir == Up) {
+                            val whoseTurn = event.whoseTurn
+                            val sender = event.sender
+                            val target = event.targetPlayer
+                            val v1 = target.calculateMessageCardValue(whoseTurn, target, event.messageCard, sender = sender)
+                            val v2 = target.calculateMessageCardValue(whoseTurn, sender, event.messageCard, sender = sender)
+                            if (v1 < v2)
+                                targetPlayerId = r.getAlternativeLocation(sender.location)
                         }
                     })
                 }, 1, TimeUnit.SECONDS)
