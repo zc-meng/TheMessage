@@ -36,10 +36,14 @@ class RobotPlayer : Player() {
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
             val human = game!!.players.first { it is HumanPlayer }!!
             if (isEnemy(human)) { // 对于低分的新人，敌方机器人可能不出牌
-                val score = Statistics.getScore(human.playerName)
-                if (score != null && score < 60 && Random.nextInt(60) >= score) {
-                    GameExecutor.post(game!!, { game!!.resolve(SendPhaseStart(this)) }, 1, TimeUnit.SECONDS)
-                    return
+                val info = Statistics.getPlayerInfo(human.playerName)
+                if (info != null) {
+                    val score = info.score
+                    val isPowerfulPlayer = info.winCount > 0 && info.winCount * 2 >= info.gameCount
+                    if (!isPowerfulPlayer && score < 60 && Random.nextInt(60) >= score) {
+                        GameExecutor.post(game!!, { game!!.resolve(SendPhaseStart(this)) }, 1, TimeUnit.SECONDS)
+                        return
+                    }
                 }
             }
         }
@@ -178,10 +182,14 @@ class RobotPlayer : Player() {
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
             val human = game!!.players.first { it is HumanPlayer }!!
             if (isEnemy(human)) { // 对于低分的新人，敌方机器人可能不出牌
-                val score = Statistics.getScore(human.playerName)
-                if (score != null && score < 60 && Random.nextInt(60) >= score) {
-                    GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
-                    return
+                val info = Statistics.getPlayerInfo(human.playerName)
+                if (info != null) {
+                    val score = info.score
+                    val isPowerfulPlayer = info.winCount > 0 && info.winCount * 2 >= info.gameCount
+                    if (!isPowerfulPlayer && score < 60 && Random.nextInt(60) >= score) {
+                        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
+                        return
+                    }
                 }
             }
         }
