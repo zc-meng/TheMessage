@@ -100,6 +100,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         players.all { it != null } || return
         !isStarted || return
         isStarted = true
+        players = players.shuffled()
+        players.forEachIndexed { i, p -> p!!.location = i }
         QQPusher.notifyStart()
         val identities = ArrayList<color>()
         when (players.size) {
