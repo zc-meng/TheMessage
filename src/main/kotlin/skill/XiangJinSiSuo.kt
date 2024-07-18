@@ -2,6 +2,8 @@ package com.fengsheng.skill
 
 import com.fengsheng.*
 import com.fengsheng.phase.ReceivePhaseIdle
+import com.fengsheng.protos.Common.card_type.Jie_Huo
+import com.fengsheng.protos.Common.card_type.Wu_Dao
 import com.fengsheng.protos.Common.direction.Up
 import com.fengsheng.protos.Role.skill_xiang_jin_si_suo_a_tos
 import com.fengsheng.protos.skillWaitForXiangJinSiSuoToc
@@ -52,17 +54,34 @@ class XiangJinSiSuo : TriggeredSkill {
             if (r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {
                     r.game!!.tryContinueResolveProtocol(r, skillXiangJinSiSuoATos {
-                        enable = true
-                        targetPlayerId = r.getAlternativeLocation(event.targetPlayer.location)
-                        if (event.dir == Up) {
-                            val whoseTurn = event.whoseTurn
-                            val sender = event.sender
-                            val target = event.targetPlayer
+                        val whoseTurn = event.whoseTurn
+                        val sender = event.sender
+                        val target = event.targetPlayer
+                        val availablePlayers = arrayListOf(target)
+                        if (event.dir == Up && !event.lockedPlayers.any { it === target }) {
                             val v1 = target.calculateMessageCardValue(whoseTurn, target, event.messageCard, sender = sender)
                             val v2 = target.calculateMessageCardValue(whoseTurn, sender, event.messageCard, sender = sender)
                             if (v1 < v2)
-                                targetPlayerId = r.getAlternativeLocation(sender.location)
+                                availablePlayers[0] = sender
                         }
+                        if (!r.cannotPlayCard(Jie_Huo) && r.cards.any { r.canUseCardTypes(Jie_Huo, it).first }) {
+                            availablePlayers.add(r)
+                        }
+                        if (!r.cannotPlayCard(Wu_Dao) && r.cards.any { r.canUseCardTypes(Wu_Dao, it).first }) {
+                            availablePlayers.add(availablePlayers[0].getNextLeftAlivePlayer())
+                            availablePlayers.add(availablePlayers[0].getNextRightAlivePlayer())
+                        }
+                        var v = Int.MIN_VALUE
+                        var bestTarget = availablePlayers[0]
+                        for (t in availablePlayers) {
+                            val v1 = r.calculateMessageCardValue(whoseTurn, t, event.messageCard, sender = sender)
+                            if (v1 > v) {
+                                v = v1
+                                bestTarget = t
+                            }
+                        }
+                        enable = true
+                        targetPlayerId = r.getAlternativeLocation(bestTarget.location)
                     })
                 }, 1, TimeUnit.SECONDS)
             }
