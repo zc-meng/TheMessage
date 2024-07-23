@@ -13,7 +13,6 @@ import com.fengsheng.skill.cannotPlayCard
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-import kotlin.random.Random
 
 class PingHeng : Card {
     constructor(id: Int, colors: List<color>, direction: direction, lockable: Boolean) :
@@ -87,29 +86,16 @@ class PingHeng : Card {
             !player.cannotPlayCard(Ping_Heng) || return false
             player.cards.size <= 3 || return false
             val identity = player.identity
-            val availableTargets = player.game!!.players.filter {
+            val p = player.game!!.players.filter {
                 if (it === player || !it!!.alive) false
                 else if (identity != color.Black && identity == it.identity) it.cards.size <= 3
                 else it.cards.size >= 3
-            }.ifEmpty { return false }
-            val weights = availableTargets.map { it!! to abs(it.cards.size - 3).toDouble() }
-            val totalWeight = weights.sumOf { it.second }
-            var target = availableTargets.first()!!
-            if (totalWeight > 0.0) { // 按权重随机
-                var weight = Random.nextDouble(totalWeight)
-                for ((p, w) in weights) {
-                    if (weight < w) {
-                        target = p
-                        break
-                    }
-                    weight -= w
-                }
-            } else {
-                target = availableTargets.random()!!
             }
+            p.size >= 1 || return false
+            val target = p.maxBy { abs(it!!.cards.size - 3.1) }
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
-                card.asCard(Ping_Heng).execute(player.game!!, player, target)
+                card.asCard(Ping_Heng).execute(player.game!!, player, target!!)
             }, 3, TimeUnit.SECONDS)
             return true
         }
