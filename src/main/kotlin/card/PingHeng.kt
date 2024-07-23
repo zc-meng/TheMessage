@@ -12,8 +12,8 @@ import com.fengsheng.skill.ConvertCardSkill
 import com.fengsheng.skill.cannotPlayCard
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 import kotlin.math.abs
+import kotlin.random.Random
 
 class PingHeng : Card {
     constructor(id: Int, colors: List<color>, direction: direction, lockable: Boolean) :
@@ -92,7 +92,7 @@ class PingHeng : Card {
                 else if (identity != color.Black && identity == it.identity) it.cards.size <= 3
                 else it.cards.size >= 3
             }.ifEmpty { return false }
-            val weights = availableTargets.map { it!! to abs(it.cards.size - 3).toDouble()}
+            val weights = availableTargets.map { it!! to abs(it.cards.size - 3).toDouble() }
             val totalWeight = weights.sumOf { it.second }
             var target = availableTargets.first()!!
             if (totalWeight > 0.0) { // 按权重随机
