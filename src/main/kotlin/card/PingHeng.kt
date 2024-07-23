@@ -89,12 +89,18 @@ class PingHeng : Card {
                 if (it === player || !it!!.alive) false
                 else if (identity != color.Black && identity == it.identity) it.cards.size <= 3
                 else it.cards.size >= 3
-            }.randomOrNull() ?: return false
+            }.mapIndexed { index, it ->
+                it to (abs(it.cards.size - 3).toDouble())
+            }.let { playersWithWeights ->
+                val totalWeight = playersWithWeights.sumOf { it.second }
+                playersWithWeights.map { (player, weight) ->
+                    player to (weight / totalWeight)
+                }
+            }.filter { it.second > 0 }.randomOrNull()?.first ?: return false
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
                 card.asCard(Ping_Heng).execute(player.game!!, player, p)
             }, 3, TimeUnit.SECONDS)
             return true
         }
-    }
 }
