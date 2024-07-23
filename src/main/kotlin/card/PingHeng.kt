@@ -12,6 +12,8 @@ import com.fengsheng.skill.ConvertCardSkill
 import com.fengsheng.skill.cannotPlayCard
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
+import kotlin.math.abs
 
 class PingHeng : Card {
     constructor(id: Int, colors: List<color>, direction: direction, lockable: Boolean) :
@@ -85,22 +87,31 @@ class PingHeng : Card {
             !player.cannotPlayCard(Ping_Heng) || return false
             player.cards.size <= 3 || return false
             val identity = player.identity
-            val p = player.game!!.players.filter {
+            val availableTargets = player.game!!.players.filter {
                 if (it === player || !it!!.alive) false
                 else if (identity != color.Black && identity == it.identity) it.cards.size <= 3
                 else it.cards.size >= 3
-            }.mapIndexed { index, it ->
-                it to (abs(it.cards.size - 3).toDouble())
-            }.let { playersWithWeights ->
-                val totalWeight = playersWithWeights.sumOf { it.second }
-                playersWithWeights.map { (player, weight) ->
-                    player to (weight / totalWeight)
+            }.ifEmpty { return false }
+            val weights = availableTargets.map { it!! to abs(it.cards.size - 3).toDouble()}
+            val totalWeight = weights.sumOf { it.second }
+            var target = availableTargets.first()!!
+            if (totalWeight > 0.0) { // 按权重随机
+                var weight = Random.nextDouble(totalWeight)
+                for ((p, w) in weights) {
+                    if (weight < w) {
+                        target = p
+                        break
+                    }
+                    weight -= w
                 }
-            }.filter { it.second > 0 }.randomOrNull()?.first ?: return false
+            } else {
+                target = availableTargets.random()!!
+            }
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
-                card.asCard(Ping_Heng).execute(player.game!!, player, p)
+                card.asCard(Ping_Heng).execute(player.game!!, player, target)
             }, 3, TimeUnit.SECONDS)
             return true
         }
+    }
 }
