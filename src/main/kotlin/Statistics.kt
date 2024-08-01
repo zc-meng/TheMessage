@@ -197,6 +197,13 @@ object Statistics {
         return newScore to delta
     }
 
+    fun getSeasonRankList(): BufferedImage {
+        val l1 = playerInfoMap.map { (_, v) ->
+            v.copy(score = v.maxScore.coerceAtLeast(0))
+        }.filter { it.score > 0 }.sorted()
+        return Image.genRankListImage(l1.take(50))
+    }
+
     fun calculateRankList() {
         val now = System.currentTimeMillis()
         val l1 = playerInfoMap.map { (_, v) ->
@@ -204,15 +211,7 @@ object Statistics {
             val days = ((now - v.lastTime) / (24 * 3600000L)).toInt()
             val decay = days / 7 * 20
             v.copy(score = (v.score - decay).coerceAtLeast(0))
-        }.filter { it.score > 0 }.sortedWith { a, b ->
-            if (a.score > b.score) -1
-            else if (a.score < b.score) 1
-            else if (a.lastTime > b.lastTime) -1
-            else if (a.lastTime < b.lastTime) 1
-            else if (a.gameCount > b.gameCount) -1
-            else if (a.gameCount < b.gameCount) 1
-            else b.winCount.compareTo(a.winCount)
-        }
+        }.filter { it.score > 0 }.sorted()
 
         fun makeRankList(count: Int): String {
             val l = l1.take(count)
@@ -321,7 +320,7 @@ object Statistics {
                     val title = a.getOrNull(6) ?: ""
                     val lt = a.getOrNull(7)?.toLong() ?: 0
                     val energy = a.getOrNull(8)?.toInt() ?: 0
-                    val maxScore = a.getOrNull(9)?.toInt() ?: 0
+                    val maxScore = a.getOrNull(9)?.toInt() ?: score
                     val p = PlayerInfo(name, score, pwd, win, game, forbid, title, lt, energy, maxScore)
                     if (playerInfoMap.put(name, p) != null)
                         throw RuntimeException("数据错误，有重复的玩家name")
@@ -431,13 +430,23 @@ object Statistics {
         val lastTime: Long,
         val energy: Int,
         val maxScore: Int,
-    ) {
+    ) : Comparable<PlayerInfo> {
         val scoreWithDecay: Int
             get() {
                 val days = ((System.currentTimeMillis() - lastTime) / (24 * 3600000L)).toInt()
                 val decay = days / 7 * 20
                 return (score - decay).coerceAtLeast(0)
             }
+
+        override fun compareTo(other: PlayerInfo) = when {
+            score > other.score -> -1
+            score < other.score -> 1
+            lastTime > other.lastTime -> -1
+            lastTime < other.lastTime -> 1
+            gameCount > other.gameCount -> -1
+            gameCount < other.gameCount -> 1
+            else -> other.winCount.compareTo(winCount)
+        }
     }
 
     data class RobotInfo(
