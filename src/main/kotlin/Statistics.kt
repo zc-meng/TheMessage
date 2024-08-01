@@ -98,7 +98,7 @@ object Statistics {
     }
 
     fun register(name: String): Boolean {
-        val result = playerInfoMap.putIfAbsent(name, PlayerInfo(name, 0, "", 0, 0, 0, "", 0, 10)) == null
+        val result = playerInfoMap.putIfAbsent(name, PlayerInfo(name, 0, "", 0, 0, 0, "", 0, 10, 0)) == null
         if (result) pool.trySend(::savePlayerInfo)
         return result
     }
@@ -184,7 +184,7 @@ object Statistics {
             playerInfoMap.computeIfPresent(player.playerName) { _, v ->
                 newScore = v.score addScore score
                 delta = newScore - v.score
-                v.copy(score = newScore)
+                v.copy(score = newScore, maxScore = maxOf(v.score, newScore))
             }
         } else {
             robotInfoMap.compute(player.playerName) { _, v ->
@@ -246,7 +246,22 @@ object Statistics {
      */
     fun resetSeason() {
         playerInfoMap.keys.forEach {
-            playerInfoMap.computeIfPresent(it) { _, v -> v.copy(winCount = 0, gameCount = 0, score = v.score / 2) }
+            playerInfoMap.computeIfPresent(it) { _, v ->
+                if (v.score <= 1) return@computeIfPresent null
+                v.copy(
+                    winCount = 0,
+                    gameCount = 0,
+                    title = "",
+                    score = v.score / 2,
+                    energy = v.energy.coerceAtLeast(10),
+                    maxScore = v.score / 2
+                )
+            }
+        }
+        robotInfoMap.keys.forEach {
+            robotInfoMap.computeIfPresent(it) { _, v ->
+                v.copy(score = v.score / 2)
+            }
         }
         pool.trySend(::savePlayerInfo)
         calculateRankList()
@@ -266,7 +281,8 @@ object Statistics {
             sb.append(info.forbidUntil).append(',')
             sb.append(info.title).append(',')
             sb.append(info.lastTime).append(',')
-            sb.append(info.energy).append('\n')
+            sb.append(info.energy).append(',')
+            sb.append(info.maxScore).append('\n')
         }
         writeFile("playerInfo.csv", sb.toString().toByteArray())
         sb.clear()
@@ -295,7 +311,7 @@ object Statistics {
                 var line: String
                 while (true) {
                     line = reader.readLine() ?: break
-                    val a = line.split(",".toRegex(), limit = 9)
+                    val a = line.split(",".toRegex(), limit = 10)
                     val pwd = a[4]
                     val score = if (a[3].length < 6) a[3].toInt() else 0 // 以前这个位置是deviceId
                     val name = a[2]
@@ -305,7 +321,9 @@ object Statistics {
                     val title = a.getOrNull(6) ?: ""
                     val lt = a.getOrNull(7)?.toLong() ?: 0
                     val energy = a.getOrNull(8)?.toInt() ?: 0
-                    if (playerInfoMap.put(name, PlayerInfo(name, score, pwd, win, game, forbid, title, lt, energy)) != null)
+                    val maxScore = a.getOrNull(9)?.toInt() ?: 0
+                    val p = PlayerInfo(name, score, pwd, win, game, forbid, title, lt, energy, maxScore)
+                    if (playerInfoMap.put(name, p) != null)
                         throw RuntimeException("数据错误，有重复的玩家name")
                     winCount += win
                     gameCount += game
@@ -412,6 +430,7 @@ object Statistics {
         val title: String,
         val lastTime: Long,
         val energy: Int,
+        val maxScore: Int,
     ) {
         val scoreWithDecay: Int
             get() {
