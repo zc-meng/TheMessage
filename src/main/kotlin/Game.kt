@@ -44,6 +44,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     var deck = Deck(this)
     var fsm: Fsm? = null
     var possibleSecretTasks: List<secret_task> = emptyList()
+    var realTurn = 0
     var turn = 0
     val isEarly: Boolean
         get() = turn <= players.size
