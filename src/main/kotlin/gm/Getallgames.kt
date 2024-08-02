@@ -4,6 +4,7 @@ import com.fengsheng.CountColors
 import com.fengsheng.Game
 import com.fengsheng.GameExecutor
 import com.fengsheng.HumanPlayer
+import com.fengsheng.phase.WaitForSelectRole
 import com.fengsheng.protos.Common
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
@@ -14,9 +15,9 @@ class Getallgames : Function<Map<String, String>, Any> {
         val games = Game.gameCache.values.mapNotNull { game ->
             val (turn, players) = GameExecutor.call(game) {
                 if (game.isEnd) return@call -1 to emptyList<PlayerData>()
-                if (!game.isStarted) {
+                if (!game.isStarted || game.fsm is WaitForSelectRole) {
                     val players = game.players.filterIsInstance<HumanPlayer>()
-                    return@call game.realTurn to players.map { PlayerData(name = it.playerName) }
+                    return@call 0 to players.map { PlayerData(name = it.playerName) }
                 }
                 game.realTurn to game.players.mapNotNull m1@{
                     if (it == null) return@m1 null
