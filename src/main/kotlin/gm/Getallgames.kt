@@ -4,7 +4,6 @@ import com.fengsheng.CountColors
 import com.fengsheng.Game
 import com.fengsheng.GameExecutor
 import com.fengsheng.HumanPlayer
-import com.fengsheng.phase.WaitForSelectRole
 import com.fengsheng.protos.Common
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
@@ -15,12 +14,10 @@ class Getallgames : Function<Map<String, String>, Any> {
         val games = Game.gameCache.values.mapNotNull { game ->
             val (turn, players) = GameExecutor.call(game) {
                 if (game.isEnd) return@call -1 to emptyList<PlayerData>()
-                if (!game.isStarted || game.fsm is WaitForSelectRole) {
-                    val players = game.players.filterIsInstance<HumanPlayer>()
-                    return@call 0 to players.map { PlayerData(name = it.playerName) }
-                }
                 game.realTurn to game.players.mapNotNull m1@{
                     if (it == null) return@m1 null
+                    val name = (it as? HumanPlayer)?.playerName ?: "机器人"
+                    if (game.realTurn == 0) return@m1 PlayerData(name = name)
                     val count = CountColors(it.messageCards)
                     val roleName = when {
                         it.role == Common.role.unknown -> ""
@@ -28,7 +25,7 @@ class Getallgames : Function<Map<String, String>, Any> {
                         else -> it.roleName
                     }
                     PlayerData(
-                        name = (it as? HumanPlayer)?.playerName ?: "机器人",
+                        name = (it as? HumanPlayer)?.playerName ?: name,
                         roleName = roleName,
                         alive = it.alive,
                         cards = it.cards.size,
