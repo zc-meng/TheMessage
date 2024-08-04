@@ -34,8 +34,11 @@ class Getallgames : Function<Map<String, String>, Any> {
                     )
                 }
             }
-            val now = System.currentTimeMillis()
-            if (turn == -1) null else GameData(game.id, turn, players, now - game.playTime)
+            when {
+                turn == -1 -> null
+                game.playTime == 0 -> GameData(game.id, turn, players, 0)
+                else -> GameData(game.id, turn, players, System.currentTimeMillis() - game.playTime)
+            }
         }.sortedBy { it.id }
         return gson.toJson(games)
     }
