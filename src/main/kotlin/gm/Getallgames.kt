@@ -36,7 +36,7 @@ class Getallgames : Function<Map<String, String>, Any> {
             }
             when {
                 turn == -1 -> null
-                game.playTime == 0 -> GameData(game.id, turn, players, 0)
+                game.playTime == 0L -> GameData(game.id, turn, players, 0L)
                 else -> GameData(game.id, turn, players, System.currentTimeMillis() - game.playTime)
             }
         }.sortedBy { it.id }
