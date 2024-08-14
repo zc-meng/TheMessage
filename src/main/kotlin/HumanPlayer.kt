@@ -304,9 +304,9 @@ class HumanPlayer(
     override fun notifyFightPhase(waitSecond: Int) {
         val fsm = game!!.fsm as FightPhaseIdle
         val skip =
-          if (cannotPlayCardAndSkillForFightPhase(fsm)) 1
-          else if (hasNothingToDoForFightPhase(fsm)) 3 + Random.nextInt(5)
-          else waitSecond + 2
+            if (cannotPlayCardAndSkillForFightPhase(fsm)) 1
+            else if (hasNothingToDoForFightPhase(fsm)) 3 + Random.nextInt(5)
+            else waitSecond + 2
         send(notifyPhaseToc {
             currentPlayerId = getAlternativeLocation(fsm.whoseTurn.location)
             messagePlayerId = getAlternativeLocation(fsm.inFrontOfWhom.location)
