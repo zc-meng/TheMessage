@@ -194,6 +194,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     fun end(declaredWinners: List<Player>?, winners: List<Player>?, forceEnd: Boolean = false) {
         isEnd = true
+        gameIdleTimeout?.cancel()
         val humanPlayers = players.filterIsInstance<HumanPlayer>()
         val addScoreMap = HashMap<String, Int>()
         val newScoreMap = HashMap<String, Int>()
