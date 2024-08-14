@@ -113,13 +113,19 @@ class RobotPlayer : Player() {
 
     override fun startSendPhaseTimer(waitSecond: Int) {
         val fsm = game!!.fsm as SendPhaseIdle
-        for (card in cards) {
-            val ai = aiSendPhase[card.type] ?: continue
-            if (ai(fsm, card)) return
+        if (!cannotPlayCard(Po_Yi)) {
+            for (card in cards.sortCards(identity)) {
+                val (ok, convertCardSkill) = canUseCardTypes(Po_Yi, card)
+                ok || continue
+                val ai = aiSendPhase[card.type] ?: continue
+                if (ai(fsm, card, convertCardSkill)) return
+            }
         }
         GameExecutor.post(game!!, {
-            val receive = fsm.mustReceiveMessage() || // 如果必须接收，则接收
-                !fsm.cannotReceiveMessage() && // 如果不能接收，则不接收
+            val receive = fsm.mustReceiveMessage() ||
+                // 如果必须接收，则接收
+                !fsm.cannotReceiveMessage() &&
+                // 如果不能接收，则不接收
                 run {
                     val oldValue =
                         calculateMessageCardValue(fsm.whoseTurn, this, fsm.messageCard, sender = fsm.sender)
@@ -197,8 +203,10 @@ class RobotPlayer : Player() {
             val ai = aiSkillFightPhase1[skill.skillId] ?: continue
             if (ai(fsm, skill as? ActiveSkill)) return
         }
-        if (!game!!.isEarly || this === fsm.whoseTurn ||
-            isPartnerOrSelf(fsm.inFrontOfWhom) && fsm.inFrontOfWhom.willDie(fsm.messageCard) ||
+        if (!game!!.isEarly ||
+            this === fsm.whoseTurn ||
+            isPartnerOrSelf(fsm.inFrontOfWhom) &&
+            fsm.inFrontOfWhom.willDie(fsm.messageCard) ||
             calculateMessageCardValue(fsm.whoseTurn, fsm.inFrontOfWhom, fsm.messageCard, sender = fsm.sender) <= -110) {
             val result = calFightPhase(fsm)
             if (result != null && result.deltaValue > 10) {
@@ -411,10 +419,9 @@ class RobotPlayer : Player() {
          * @param reverse 为`false`时，表示把有用的牌排在前面，没用的牌排在后面。不填为`false`
          * @return 一个新的`List`，包含了排列好的牌
          */
-        fun Iterable<Card>.sortCards(c: color, reverse: Boolean = false): List<Card> {
-            return if (reverse) sortedBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
+        fun Iterable<Card>.sortCards(c: color, reverse: Boolean = false): List<Card> =
+            if (reverse) sortedBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
             else sortedBy { cardOrder[it.type]!! + if (c in it.colors) 1 else 0 }
-        }
 
         /**
          * 获得最有（最无）价值的牌（换句话说，就是[sortCards]后的第一个）
@@ -424,10 +431,9 @@ class RobotPlayer : Player() {
          * @return 最有（最无）价值的牌
          * @throws NoSuchElementException 如果列表为空
          */
-        fun Iterable<Card>.bestCard(c: color, reverse: Boolean = false): Card {
-            return if (reverse) minBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
+        fun Iterable<Card>.bestCard(c: color, reverse: Boolean = false): Card =
+            if (reverse) minBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
             else minBy { cardOrder[it.type]!! + if (c in it.colors) 1 else 0 }
-        }
 
         /**
          * 获得最有（最无）价值的牌（换句话说，就是[sortCards]后的第一个）
@@ -436,9 +442,8 @@ class RobotPlayer : Player() {
          * @param reverse 为`false`时，表示最有价值的牌。不填为`false`
          * @return 最有（最无）价值的牌，如果列表为空，则返回`null`
          */
-        fun Iterable<Card>.bestCardOrNull(c: color, reverse: Boolean = false): Card? {
-            return if (reverse) minByOrNull { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
+        fun Iterable<Card>.bestCardOrNull(c: color, reverse: Boolean = false): Card? =
+            if (reverse) minByOrNull { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
             else minByOrNull { cardOrder[it.type]!! + if (c in it.colors) 1 else 0 }
-        }
     }
 }

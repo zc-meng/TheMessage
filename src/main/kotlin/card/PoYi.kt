@@ -11,6 +11,7 @@ import com.fengsheng.protos.Fengsheng.po_yi_show_tos
 import com.fengsheng.protos.poYiShowToc
 import com.fengsheng.protos.poYiShowTos
 import com.fengsheng.protos.usePoYiToc
+import com.fengsheng.skill.ConvertCardSkill
 import com.fengsheng.skill.cannotPlayCard
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
@@ -128,16 +129,17 @@ class PoYi : Card {
         }
     }
 
-    override fun toString(): String {
-        return "${cardColorToString(colors)}破译"
-    }
+    override fun toString() = "${cardColorToString(colors)}破译"
 
     companion object {
-        fun ai(e: SendPhaseIdle, card: Card): Boolean {
+        fun ai(e: SendPhaseIdle, card: Card, convertCardSkill: ConvertCardSkill?): Boolean {
             val player = e.inFrontOfWhom
             !player.cannotPlayCard(Po_Yi) || return false
             !e.isMessageCardFaceUp && e.messageCard.isBlack() || return false
-            GameExecutor.post(player.game!!, { card.asCard(Po_Yi).execute(player.game!!, player) }, 1, TimeUnit.SECONDS)
+            GameExecutor.post(player.game!!, {
+                convertCardSkill?.onConvert(player)
+                card.asCard(Po_Yi).execute(player.game!!, player)
+            }, 1, TimeUnit.SECONDS)
             return true
         }
     }
