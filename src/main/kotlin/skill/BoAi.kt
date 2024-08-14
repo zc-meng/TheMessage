@@ -53,7 +53,7 @@ class BoAi : MainPhaseSkill() {
             g.players.send { p ->
                 skillBoAiAToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq2 = p.seq
                         seq = seq2

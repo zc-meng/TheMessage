@@ -65,7 +65,7 @@ class PoYi : Card {
                 usePoYiToc {
                     card = this@ExecutePoYi.card.toPbCard()
                     playerId = player.getAlternativeLocation(r.location)
-                    if (!sendPhase.isMessageCardFaceUp) waitingSecond = Config.WaitSecond
+                    if (!sendPhase.isMessageCardFaceUp) waitingSecond = r.game!!.waitSecond
                     if (player === r) {
                         val seq2 = player.seq
                         messageCard = sendPhase.messageCard.toPbCard()

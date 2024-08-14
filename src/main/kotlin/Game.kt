@@ -50,6 +50,16 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     val isEarly: Boolean
         get() = turn <= players.size
 
+    val waitSecond: Int
+        get() {
+            val cnt = players.count { it is HumanPlayer }
+            return when (cnt) {
+                1 -> Config.WaitSeconds * 2
+                2 -> Config.WaitSeconds
+                else -> (Config.WaitSeconds * (1 - 0.5 * cnt)).toInt()
+            }
+        }
+
     /**
      * 用于出牌阶段结束时提醒还未发动的技能
      */
@@ -311,7 +321,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         gameIdleTimeout?.cancel()
         gameIdleTimeout = GameExecutor.post(this, {
             if (!isEnd) fsm?.let { resolve(NextTurn(it.whoseTurn)) }
-        }, (Config.WaitSecond * 3).toLong(), TimeUnit.SECONDS)
+        }, (waitSecond * 3).toLong(), TimeUnit.SECONDS)
         while (true) {
             val result = fsm!!.resolve() ?: break
             fsm = result.next

@@ -36,7 +36,7 @@ class YiXin : TriggeredSkill, BeforeDieSkill {
             r.game!!.players.send { player ->
                 skillWaitForYiXinToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (player == r) {
                         val seq2 = player.seq
                         seq = seq2

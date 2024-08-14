@@ -109,7 +109,7 @@ class ShiTan : Card {
                 showShiTanToc {
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (p === target) {
                         val seq2 = p.seq
                         seq = seq2

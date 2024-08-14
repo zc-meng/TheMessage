@@ -36,7 +36,7 @@ class RuGui : TriggeredSkill, BeforeDieSkill {
             r.game!!.players.send { player ->
                 skillWaitForRuGuiToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (player === r) {
                         val seq = player.seq
                         this.seq = seq

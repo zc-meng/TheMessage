@@ -125,7 +125,7 @@ class DuJi : ActiveSkill {
                         targetPlayerIds.add(p.getAlternativeLocation(twoPlayersAndCard.waitingPlayer.location))
                         cardIds.add(twoPlayersAndCard.card.id)
                     }
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq2 = p.seq
                         seq = seq2
@@ -207,7 +207,7 @@ class DuJi : ActiveSkill {
                     waitingPlayerId = p.getAlternativeLocation(selection.waitingPlayer.location)
                     targetPlayerId = p.getAlternativeLocation(selection.fromPlayer.location)
                     card = selection.card.toPbCard()
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === selection.waitingPlayer) {
                         val seq2 = p.seq
                         seq = seq2

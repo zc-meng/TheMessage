@@ -72,7 +72,7 @@ class LengXueXunLian : ActiveSkill {
                 skillLengXueXunLianAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     this@ExecuteLengXueXunLian.cards.forEach { cards.add(it.toPbCard()) }
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq = p.seq
                         this.seq = seq

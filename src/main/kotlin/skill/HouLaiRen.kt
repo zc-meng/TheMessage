@@ -82,7 +82,7 @@ class HouLaiRen : ActiveSkill {
                 skillHouLaiRenAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     remainCardId = this@ExecuteHouLaiRen.remainCardId
-                    waitingSecond = Config.WaitSecond * 2
+                    waitingSecond = g.waitSecond * 2
                     if (p === r) {
                         this@ExecuteHouLaiRen.roles.forEach { roles.add(it.role) }
                         val seq2 = p.seq

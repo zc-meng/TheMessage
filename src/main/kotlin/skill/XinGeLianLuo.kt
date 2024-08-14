@@ -34,7 +34,7 @@ class XinGeLianLuo : TriggeredSkill {
             r.game!!.players.send { player ->
                 skillWaitForXinGeLianLuoToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (player === r) {
                         val seq = player.seq
                         this.seq = seq

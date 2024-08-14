@@ -41,7 +41,7 @@ class BianZeTong : TriggeredSkill {
             r.game!!.players.send { p ->
                 skillWaitForBianZeTongToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (p === r) {
                         val seq = p.seq
                         this.seq = seq

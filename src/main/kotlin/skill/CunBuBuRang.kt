@@ -46,7 +46,7 @@ class CunBuBuRang : TriggeredSkill {
                             player.send(skillWaitForCunBuBuRangToc {
                                 playerId = player.getAlternativeLocation(r.location)
                                 targetPlayerId = player.getAlternativeLocation(target.location)
-                                waitingSecond = Config.WaitSecond
+                                waitingSecond = r.game!!.waitSecond
                                 val seq = player.seq
                                 this.seq = seq
                                 player.timeout = GameExecutor.post(r.game!!, {
@@ -63,7 +63,7 @@ class CunBuBuRang : TriggeredSkill {
                         player.send(skillWaitForCunBuBuRangToc {
                             playerId = player.getAlternativeLocation(r.location)
                             targetPlayerId = player.getAlternativeLocation(target.location)
-                            waitingSecond = Config.WaitSecond
+                            waitingSecond = r.game!!.waitSecond
                         })
                     }
                 }

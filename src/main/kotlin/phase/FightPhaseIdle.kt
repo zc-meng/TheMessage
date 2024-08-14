@@ -1,6 +1,5 @@
 package com.fengsheng.phase
 
-import com.fengsheng.Config
 import com.fengsheng.Player
 import com.fengsheng.ProcessFsm
 import com.fengsheng.ResolveResult
@@ -28,7 +27,7 @@ data class FightPhaseIdle(
         if (!whoseFightTurn.alive)
             return ResolveResult(FightPhaseNext(this), true)
         for (p in whoseTurn.game!!.players)
-            p!!.notifyFightPhase(Config.WaitSecond)
+            p!!.notifyFightPhase(whoseTurn.game!!.waitSecond)
         return null
     }
 

@@ -84,7 +84,7 @@ class JiaoJi : MainPhaseSkill() {
                     cards.forEach { this.cards.add(it.toPbCard()) }
                 else
                     unknownCardCount = cards.size
-                waitingSecond = Config.WaitSecond
+                waitingSecond = g.waitSecond
                 if (p === r) {
                     val seq = p.seq
                     this.seq = seq

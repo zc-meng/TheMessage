@@ -83,9 +83,9 @@ object GameExecutor {
             if (!game.players.any { it is HumanPlayer && it.alive })
                 return TimeWheel.newTimeout({ post(game, callback) }, 1, unit)
             if (Config.IsGmEnable) return TimeWheel.newTimeout({ post(game, callback) }, 2, unit)
-            val minScore = game.players.minOf { if (it is HumanPlayer) Statistics.getScore(it.playerName) ?: 0 else 9999 }
-            if (minScore < 70)
-                return TimeWheel.newTimeout({ post(game, callback) }, (10 - minScore / 10).toLong(), unit)
+            val maxScore = game.players.maxOf { if (it is HumanPlayer) Statistics.getScore(it.playerName) ?: 9999 else 0 }
+            if (maxScore < 70)
+                return TimeWheel.newTimeout({ post(game, callback) }, (10 - maxScore / 10).toLong(), unit)
         }
         return TimeWheel.newTimeout({ post(game, callback) }, delay, unit)
     }

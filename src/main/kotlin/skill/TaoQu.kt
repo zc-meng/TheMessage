@@ -102,7 +102,7 @@ class TaoQu : MainPhaseSkill() {
                     playerId = p.getAlternativeLocation(r.location)
                     colors.addAll(this@ExecuteTaoQu.colors)
                     this@ExecuteTaoQu.cards.forEach { cards.add(it.toPbCard()) }
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq = p.seq
                         this.seq = seq

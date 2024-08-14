@@ -40,9 +40,9 @@ data class SendPhaseIdle(
                 ResolveResult(MessageMoveNext(this), true)
         }
         for (p in whoseTurn.game!!.players) {
-            p!!.notifySendPhase(Config.WaitSecond)
+            p!!.notifySendPhase(whoseTurn.game!!.waitSecond)
         }
-        inFrontOfWhom.startSendPhaseTimer(Config.WaitSecond)
+        inFrontOfWhom.startSendPhaseTimer(whoseTurn.game!!.waitSecond)
         return null
     }
 

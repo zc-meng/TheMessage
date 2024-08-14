@@ -87,7 +87,7 @@ class ChiZiZhiXin : TriggeredSkill {
                 skillChiZiZhiXinAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     messageCard = event.messageCard.toPbCard()
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (p === r) {
                         val seq = r.seq
                         this.seq = seq

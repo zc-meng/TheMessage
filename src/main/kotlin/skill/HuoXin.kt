@@ -62,7 +62,7 @@ class HuoXin : MainPhaseSkill() {
         r.incrSeq()
         r.addSkillUseCount(skillId)
         logger.info("${r}发动了[惑心]，展示了牌堆顶的${showCards[0]}，查看了${target}的手牌")
-        val waitingSecond = Config.WaitSecond
+        val waitingSecond = g.waitSecond
         g.players.send { p ->
             skillHuoXinAToc {
                 playerId = p.getAlternativeLocation(r.location)

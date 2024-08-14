@@ -58,7 +58,7 @@ class ChengZhi : TriggeredSkill {
             r.game!!.players.send { player ->
                 skillWaitForChengZhiToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     diePlayerId = player.getAlternativeLocation(whoDie.location)
                     if (player === r) {
                         cards.forEach { this.cards.add(it.toPbCard()) }

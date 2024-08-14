@@ -73,7 +73,7 @@ class JinBi : MainPhaseSkill() {
                 skillJinBiAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (p === target) {
                         val seq = p.seq
                         this.seq = seq

@@ -55,7 +55,7 @@ class YingBianZiRu : ActiveSkill {
         r.incrSeq()
         r.addSkillUseCount(skillId)
         g.playerSetRoleFaceUp(r, true)
-        val timeout = Config.WaitSecond
+        val timeout = g.waitSecond
         g.players.send { p ->
             skillYingBianZiRuAToc {
                 playerId = p.getAlternativeLocation(r.location)

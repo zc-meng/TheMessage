@@ -30,7 +30,7 @@ object Config {
     val PushQQGroups: LongArray
     val WaitingSecond: AtomicInteger
 
-    val WaitSecond: Int get() = WaitingSecond.get()
+    val WaitSeconds: Int get() = WaitingSecond.get()
 
     init {
         val pps = Properties()

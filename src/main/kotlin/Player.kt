@@ -116,7 +116,7 @@ abstract class Player protected constructor() {
         inFrontOfWhom: Player,
         messageCard: Card,
         waitingPlayer: Player,
-        waitSecond: Int = Config.WaitSecond
+        waitSecond: Int = game!!.waitSecond
     )
 
     open fun init() {

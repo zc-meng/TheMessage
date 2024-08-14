@@ -52,7 +52,7 @@ class DuMing : TriggeredSkill {
             g.players.send { p ->
                 skillWaitForDuMingToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq = p.seq
                         this.seq = seq
@@ -190,7 +190,7 @@ class DuMing : TriggeredSkill {
                     color = c
                     if (p === r) card = this@ExecuteDuMing.card.toPbCard()
                     if (needPutBlack) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = g.waitSecond
                         if (p === r) {
                             val seq = p.seq
                             this.seq = seq

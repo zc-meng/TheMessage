@@ -105,7 +105,7 @@ class FengYunBianHuan : Card {
             r.game!!.players.send { player ->
                 waitForFengYunBianHuanChooseCardToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (player === r) {
                         val seq2 = player.seq
                         seq = seq2

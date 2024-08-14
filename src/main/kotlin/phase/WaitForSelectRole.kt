@@ -32,7 +32,7 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                     game.tryContinueResolveProtocol(player, selectRoleTos {
                         role = options[player.location].firstOrNull()?.role ?: unknown
                     })
-                }, player.getWaitSeconds(Config.WaitSecond * 2 + 2).toLong(), TimeUnit.SECONDS)
+                }, player.getWaitSeconds(game.waitSecond * 2 + 2).toLong(), TimeUnit.SECONDS)
             } else {
                 selected[player!!.location] = options[player.location].run {
                     if (Config.IsGmEnable) return@run firstOrNull()
@@ -96,7 +96,7 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
             identity = player.identity
             secretTask = player.secretTask
             roles.addAll(options[player.location].map { it.role }.ifEmpty { listOf(unknown) })
-            waitingSecond = Config.WaitSecond * 2
+            waitingSecond = game.waitSecond * 2
             possibleSecretTask.addAll(game.possibleSecretTasks)
         })
         if (game.players.size < 5)
