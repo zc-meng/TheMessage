@@ -12,6 +12,7 @@ import com.fengsheng.protos.Fengsheng.notify_player_update_toc
 import com.fengsheng.skill.ActiveSkill
 import com.fengsheng.skill.SkillId.*
 import com.fengsheng.skill.cannotPlayCardAndSkillForFightPhase
+import com.fengsheng.skill.hasNothingToDoForFightPhase
 import com.fengsheng.skill.mustReceiveMessage
 import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.util.JsonFormat
@@ -21,6 +22,7 @@ import io.netty.channel.ChannelFutureListener
 import io.netty.util.Timeout
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 class HumanPlayer(
     var channel: Channel,
@@ -301,7 +303,10 @@ class HumanPlayer(
 
     override fun notifyFightPhase(waitSecond: Int) {
         val fsm = game!!.fsm as FightPhaseIdle
-        val skip = cannotPlayCardAndSkillForFightPhase(fsm)
+        val skip =
+          if (cannotPlayCardAndSkillForFightPhase(fsm)) 1
+          else if (hasNothingToDoForFightPhase(fsm)) 3 + Random.nextInt(5)
+          else waitSecond + 2
         send(notifyPhaseToc {
             currentPlayerId = getAlternativeLocation(fsm.whoseTurn.location)
             messagePlayerId = getAlternativeLocation(fsm.inFrontOfWhom.location)
@@ -317,7 +322,7 @@ class HumanPlayer(
                         incrSeq()
                         game!!.resolve(FightPhaseNext(fsm))
                     }
-                }, if (skip) 1 else getWaitSeconds(waitSecond + 2).toLong(), TimeUnit.SECONDS)
+                }, getWaitSeconds(skip).toLong(), TimeUnit.SECONDS)
             }
         })
     }
@@ -477,8 +482,8 @@ class HumanPlayer(
     }
 
     fun getWaitSeconds(seconds: Int) = when {
-        !isActive -> 5
-        autoPlay -> 1
+        !isActive -> minOf(5, seconds)
+        autoPlay -> minOf(1, seconds)
         else -> seconds
     }
 
