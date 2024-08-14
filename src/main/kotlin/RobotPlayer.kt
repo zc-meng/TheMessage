@@ -288,22 +288,24 @@ class RobotPlayer : Player() {
         val fsm = game!!.fsm as WaitForDieGiveCard
         if (whoDie !== this) return
         GameExecutor.post(game!!, {
-            if (identity != Black) {
-                val target = game!!.players.find { it !== this && it!!.alive && it.identity == identity }
-                if (target != null) {
-                    val giveCards = cards.sortCards(identity, true).takeLast(3)
-                    if (giveCards.isNotEmpty()) {
-                        cards.removeAll(giveCards.toSet())
-                        target.cards.addAll(giveCards)
-                        game!!.addEvent(GiveCardEvent(fsm.whoseTurn, this, target))
-                        logger.info("${this}给了${target}${giveCards.joinToString()}")
-                        game!!.players.send { p ->
-                            notifyDieGiveCardToc {
-                                playerId = p.getAlternativeLocation(location)
-                                targetPlayerId = p.getAlternativeLocation(target.location)
-                                if (p === target) giveCards.forEach { card.add(it.toPbCard()) }
-                                else unknownCardCount = giveCards.size
-                            }
+            var target: Player? = null
+            if (identity != Black)
+                target = game!!.players.find { it !== this && it!!.alive && it.identity == identity }
+            if (target == null) // 如果没有人给，则随机挑一个本回合没有出过牌的人给
+                target = game!!.players.filter { it !== fsm.whoseTurn && it!!.alive && !it.useCardThisTurn }.randomOrNull()
+            if (target != null) {
+                val giveCards = cards.sortCards(identity, true).takeLast(3)
+                if (giveCards.isNotEmpty()) {
+                    cards.removeAll(giveCards.toSet())
+                    target.cards.addAll(giveCards)
+                    game!!.addEvent(GiveCardEvent(fsm.whoseTurn, this, target))
+                    logger.info("${this}给了${target}${giveCards.joinToString()}")
+                    game!!.players.send { p ->
+                        notifyDieGiveCardToc {
+                            playerId = p.getAlternativeLocation(location)
+                            targetPlayerId = p.getAlternativeLocation(target.location)
+                            if (p === target) giveCards.forEach { card.add(it.toPbCard()) }
+                            else unknownCardCount = giveCards.size
                         }
                     }
                 }

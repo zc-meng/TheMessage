@@ -31,7 +31,10 @@ data class NextTurn(override val whoseTurn: Player) : ProcessFsm() {
             val player = game.players[whoseTurn]!!
             if (player.alive) {
                 game.mainPhaseAlreadyNotify = false
-                game.players.forEach { it!!.resetSkillUseCount() }
+                game.players.forEach {
+                    it!!.resetSkillUseCount()
+                    it.useCardThisTurn = false
+                }
                 InvalidSkill.reset(game)
                 OneTurnSkill.reset(game)
                 game.players.send { unknownWaitingToc { } }
