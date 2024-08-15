@@ -30,7 +30,7 @@ class Recorder {
     private var pausing = false
     fun add(protoName: String, messageBuf: ByteArray?) {
         if (protoName in ignoredProtoNames) return
-        if (!loading && ("wait_for_select_role_toc" == protoName || "init_toc" == protoName || list.isNotEmpty())) {
+        if (!loading && ("init_toc" == protoName || list.isNotEmpty())) {
             list.add(recorderLine {
                 nanoTime = System.nanoTime()
                 this.protoName = protoName
@@ -117,8 +117,7 @@ class Recorder {
             player.send(reconnectToc { isEnd = false })
             while (currentIndex <= skipCount && currentIndex < list.size) {
                 val line = list[currentIndex]
-                if ("wait_for_select_role_toc" != line.protoName && "select_role_toc" != line.protoName)
-                    player.send(line.protoName, line.messageBuf.toByteArray(), true)
+                player.send(line.protoName, line.messageBuf.toByteArray(), true)
                 currentIndex++
             }
             player.send(reconnectToc { isEnd = true })
@@ -139,10 +138,6 @@ class Recorder {
                 break
             }
             val line = list[currentIndex]
-            if ("wait_for_select_role_toc" == line.protoName || "select_role_toc" == line.protoName) {
-                currentIndex++
-                continue
-            }
             player.send(line.protoName, line.messageBuf.toByteArray(), true)
             if (++currentIndex >= list.size) {
                 player.send(displayRecordEndToc { })

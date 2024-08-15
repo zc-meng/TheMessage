@@ -13,6 +13,7 @@ import com.fengsheng.skill.RoleSkillsData
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 /**
  * 等待玩家选择角色
@@ -21,7 +22,10 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
     private val selected = MutableList<RoleSkillsData?>(game.players.size) { null }
     override val whoseTurn = game.players.random()!!
 
+    private var endTime = 0L
+
     override fun resolve(): ResolveResult? {
+        endTime = System.currentTimeMillis() + game.waitSecond * 2 * 1000
         for (player in game.players) {
             if (player is HumanPlayer) {
                 if (player.needWaitLoad)
@@ -90,7 +94,7 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
             identity = player.identity
             secretTask = player.secretTask
             roles.addAll(options[player.location].map { it.role }.ifEmpty { listOf(unknown) })
-            waitingSecond = game.waitSecond * 2
+            waitingSecond = ((endTime - System.currentTimeMillis()) / 1000.0).roundToInt().coerceAtLeast(1)
             possibleSecretTask.addAll(game.possibleSecretTasks)
         })
         if (game.players.size < 5)
