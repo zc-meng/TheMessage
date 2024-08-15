@@ -134,6 +134,7 @@ class PoYi : Card {
     companion object {
         fun ai(e: SendPhaseIdle, card: Card, convertCardSkill: ConvertCardSkill?): Boolean {
             val player = e.inFrontOfWhom
+            card.type == Po_Yi || return false // 机器人不要把别的牌当破译用
             !player.cannotPlayCard(Po_Yi) || return false
             !e.isMessageCardFaceUp && e.messageCard.isBlack() || return false
             GameExecutor.post(player.game!!, {
