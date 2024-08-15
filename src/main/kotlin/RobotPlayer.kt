@@ -6,8 +6,7 @@ import com.fengsheng.protos.Common.card_type.*
 import com.fengsheng.protos.Common.color
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
-import com.fengsheng.protos.Common.direction.Left
-import com.fengsheng.protos.Common.direction.Right
+import com.fengsheng.protos.Common.direction.*
 import com.fengsheng.protos.Common.secret_task.*
 import com.fengsheng.protos.endReceivePhaseTos
 import com.fengsheng.protos.notifyDieGiveCardToc
@@ -155,12 +154,13 @@ class RobotPlayer : Player() {
                                 )
                             }
                         }
-                    newValue = (newValue * 10 + calculateMessageCardValue(
-                        fsm.whoseTurn,
-                        fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first(),
-                        fsm.messageCard,
-                        sender = fsm.sender
-                    )) / 11
+                    if (fsm.dir == Up || fsm.lockedPlayers.isNotEmpty())
+                        newValue = (newValue * 10 + calculateMessageCardValue(
+                            fsm.whoseTurn,
+                            fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first(),
+                            fsm.messageCard,
+                            sender = fsm.sender
+                        )) / 11
                     newValue <= oldValue
                 }
             game!!.resolve(

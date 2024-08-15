@@ -1,7 +1,7 @@
 package com.fengsheng.phase
 
 import com.fengsheng.*
-import com.fengsheng.protos.Common.color.*
+import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.Fengsheng.select_role_tos
 import com.fengsheng.protos.gameStartToc
@@ -39,12 +39,6 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                     val aiPreferRole = aiPreferRole.toMutableSet()
                     if (player.identity == Black) {
                         aiPreferRole -= sp_gu_xiao_meng
-                    }
-                    if (player.identity == Blue) {
-                        aiPreferRole -= cp_xiao_jiu
-                    }
-                    if (player.identity == Red) {
-                        aiPreferRole -= cp_han_mei
                     }
                     filter { it.role in aiPreferRole }.ifEmpty {
                         RoleCache.filterForbidRoles(aiPreferRole).filter {
