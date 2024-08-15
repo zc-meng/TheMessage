@@ -478,8 +478,8 @@ class HumanPlayer(var channel: Channel, var needWaitLoad: Boolean = false, val n
     }
 
     fun getWaitSeconds(seconds: Int) = when {
-        !isActive -> minOf(5, seconds)
-        autoPlay -> minOf(1, seconds)
+        !isActive -> 5
+        autoPlay -> 1
         else -> seconds
     }
 
