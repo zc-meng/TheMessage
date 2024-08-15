@@ -60,6 +60,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
             }
         }
 
+    var timeoutSecond = 0
+
     /**
      * 用于出牌阶段结束时提醒还未发动的技能
      */

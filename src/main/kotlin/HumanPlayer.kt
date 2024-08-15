@@ -462,14 +462,13 @@ class HumanPlayer(var channel: Channel, var needWaitLoad: Boolean = false, val n
 
     override fun incrSeq() {
         seq++
-        timeout?.cancel()
-        /*timeout?.also { timeout ->
+        timeout?.also { timeout ->
             if (timeout.isExpired) {
-                if (!autoPlay && ++timeoutCount >= 3) setAutoPlay(true)
+                if (game!!.timeoutSecond > 10 && !autoPlay && ++timeoutCount >= 2) setAutoPlay(true)
             } else {
                 timeout.cancel()
             }
-        }*/
+        }
         timeout = null
     }
 
