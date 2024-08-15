@@ -56,7 +56,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
             return when (cnt) {
                 1 -> Config.WaitSeconds * 2
                 2 -> Config.WaitSeconds
-                else -> (Config.WaitSeconds * (1 - 0.5 * cnt)).toInt()
+                else -> (Config.WaitSeconds * (1 - 0.05 * cnt)).toInt()
             }
         }
 
@@ -367,7 +367,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
      * 遍历监听列表，结算技能
      */
     fun dealListeningSkill(beginLocation: Int): ResolveResult? {
-        repeat(100) { // 写个100，防止死循环
+        repeat(100) {
+            // 写个100，防止死循环
             if (resolvingEvents.isEmpty()) {
                 if (unresolvedEvents.isEmpty()) return null
                 resolvingEvents = unresolvedEvents
