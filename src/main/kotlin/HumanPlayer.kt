@@ -24,11 +24,8 @@ import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
-class HumanPlayer(
-    var channel: Channel,
-    var needWaitLoad: Boolean = false,
-    val newBodyFun: (String, ByteArray) -> Any
-) : Player() {
+class HumanPlayer(var channel: Channel, var needWaitLoad: Boolean = false, val newBodyFun: (String, ByteArray) -> Any) :
+    Player() {
     var seq = 0
         private set
 
@@ -303,10 +300,10 @@ class HumanPlayer(
 
     override fun notifyFightPhase(waitSecond: Int) {
         val fsm = game!!.fsm as FightPhaseIdle
-        val skip =
-            if (cannotPlayCardAndSkillForFightPhase(fsm)) 1
-            else if (hasNothingToDoForFightPhase(fsm)) 3 + Random.nextInt(5)
-            else waitSecond + 2
+        val (skip, skipTime) =
+            if (cannotPlayCardAndSkillForFightPhase(fsm)) true to 1
+            else if (hasNothingToDoForFightPhase(fsm)) true to 3 + Random.nextInt(5)
+            else false to waitSecond + 2
         send(notifyPhaseToc {
             currentPlayerId = getAlternativeLocation(fsm.whoseTurn.location)
             messagePlayerId = getAlternativeLocation(fsm.inFrontOfWhom.location)
@@ -320,9 +317,10 @@ class HumanPlayer(
                 timeout = GameExecutor.post(game!!, {
                     if (checkSeq(seq2)) {
                         incrSeq()
+                        if (skip) send(errorMessageToc { msg = "无牌可出，已经帮您自动跳过" })
                         game!!.resolve(FightPhaseNext(fsm))
                     }
-                }, getWaitSeconds(skip).toLong(), TimeUnit.SECONDS)
+                }, getWaitSeconds(skipTime).toLong(), TimeUnit.SECONDS)
             }
         })
     }
@@ -460,9 +458,7 @@ class HumanPlayer(
         }
     }
 
-    fun checkSeq(seq: Int): Boolean {
-        return this.seq == seq
-    }
+    fun checkSeq(seq: Int): Boolean = this.seq == seq
 
     override fun incrSeq() {
         seq++
