@@ -62,6 +62,9 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     var timeoutSecond = 0
 
+    /** 动画延迟时间（用于调包） **/
+    var animationDelayMs = 0L
+
     /**
      * 用于出牌阶段结束时提醒还未发动的技能
      */

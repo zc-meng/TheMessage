@@ -185,6 +185,8 @@ class RobotPlayer : Player() {
     override fun notifyFightPhase(waitSecond: Int) {
         val fsm = game!!.fsm as FightPhaseIdle
         this === fsm.whoseFightTurn || return
+        val delay = game!!.animationDelayMs
+        game!!.animationDelayMs = 0
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
             val human = game!!.players.first { it is HumanPlayer }!!
             if (isEnemy(human)) { // 对于低分的新人，敌方机器人可能不出牌
@@ -193,7 +195,7 @@ class RobotPlayer : Player() {
                     val score = info.score
                     val isPowerfulPlayer = info.winCount > 0 && info.winCount * 2 >= info.gameCount
                     if (!isPowerfulPlayer && score < 60 && Random.nextInt(60) >= score) {
-                        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
+                        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500 + delay, TimeUnit.MILLISECONDS)
                         return
                     }
                 }
@@ -210,13 +212,19 @@ class RobotPlayer : Player() {
             calculateMessageCardValue(fsm.whoseTurn, fsm.inFrontOfWhom, fsm.messageCard, sender = fsm.sender) <= -110) {
             val result = calFightPhase(fsm)
             if (result != null && result.deltaValue > 10) {
+                var actualDelay = 3L
+                var timeUnit = TimeUnit.SECONDS
+                if (delay > 0) {
+                    actualDelay = 3000L + delay
+                    timeUnit = TimeUnit.MILLISECONDS
+                }
                 GameExecutor.post(game!!, {
                     result.convertCardSkill?.onConvert(this)
                     if (result.cardType == Wu_Dao)
                         result.card.asCard(result.cardType).execute(game!!, this, result.wuDaoTarget!!)
                     else
                         result.card.asCard(result.cardType).execute(game!!, this)
-                }, 3, TimeUnit.SECONDS)
+                }, actualDelay, timeUnit)
                 return
             }
             for (skill in skills) {
@@ -224,7 +232,7 @@ class RobotPlayer : Player() {
                 if (ai(fsm, skill as ActiveSkill)) return
             }
         }
-        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
+        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500 + delay, TimeUnit.MILLISECONDS)
     }
 
     override fun notifyReceivePhase() {
