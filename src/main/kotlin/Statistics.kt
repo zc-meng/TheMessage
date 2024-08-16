@@ -184,7 +184,7 @@ object Statistics {
             playerInfoMap.computeIfPresent(player.playerName) { _, v ->
                 newScore = v.score addScore score
                 delta = newScore - v.score
-                v.copy(score = newScore, maxScore = maxOf(v.score, newScore))
+                v.copy(score = newScore, maxScore = maxOf(v.maxScore, newScore))
             }
         } else {
             robotInfoMap.compute(player.playerName) { _, v ->
