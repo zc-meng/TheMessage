@@ -326,7 +326,11 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     fun continueResolve() {
         gameIdleTimeout?.cancel()
         gameIdleTimeout = GameExecutor.post(this, {
-            if (!isEnd) fsm?.let { resolve(NextTurn(it.whoseTurn)) }
+            if (!isEnd) fsm?.let {
+                logger.info("等待过久，当前时点为：$it")
+                players.send { errorMessageToc { msg = "疑似出现bug卡死，已自动跳转到下一回合" } }
+                resolve(NextTurn(it.whoseTurn))
+            }
         }, (waitSecond * 3).toLong(), TimeUnit.SECONDS)
         while (true) {
             val result = fsm!!.resolve() ?: break
