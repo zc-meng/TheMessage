@@ -26,12 +26,15 @@ data class NextTurn(override val whoseTurn: Player) : ProcessFsm() {
         if (checkDisturberWin(game))
             return ResolveResult(null, false)
         var whoseTurn = whoseTurn.location
-        while (true) {
+        repeat(100) { // 防止死循环
             whoseTurn = (whoseTurn + 1) % game.players.size
             val player = game.players[whoseTurn]!!
             if (player.alive) {
                 game.mainPhaseAlreadyNotify = false
-                game.players.forEach { it!!.resetSkillUseCount() }
+                game.players.forEach {
+                    it!!.resetSkillUseCount()
+                    it.useCardThisTurn = false
+                }
                 InvalidSkill.reset(game)
                 OneTurnSkill.reset(game)
                 game.players.send { unknownWaitingToc { } }
@@ -39,6 +42,7 @@ data class NextTurn(override val whoseTurn: Player) : ProcessFsm() {
                 return null
             }
         }
+        return null
     }
 
     private fun checkDisturberWin(game: Game): Boolean { // 无需判断簒夺者，因为簒夺者、搅局者都要求是自己回合

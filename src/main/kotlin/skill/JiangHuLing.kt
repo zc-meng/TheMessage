@@ -35,7 +35,7 @@ class JiangHuLing : TriggeredSkill {
             r.game!!.players.send { player ->
                 skillWaitForJiangHuLingAToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (player === r) {
                         val seq = player.seq
                         this.seq = seq
@@ -134,7 +134,7 @@ class JiangHuLing : TriggeredSkill {
                 skillWaitForJiangHuLingBToc {
                     playerId = p.getAlternativeLocation(event.sender.location)
                     color = this@ExecuteJiangHuLingB.color
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = event.sender.game!!.waitSecond
                     if (p === event.sender) {
                         val seq = p.seq
                         this.seq = seq

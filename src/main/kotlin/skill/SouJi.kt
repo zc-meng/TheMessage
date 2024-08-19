@@ -72,7 +72,7 @@ class SouJi : ActiveSkill {
                 skillSouJiAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
-                    waitingSecond = Config.WaitSecond * 4 / 3
+                    waitingSecond = g.waitSecond * 4 / 3
                     if (p === r) {
                         target.cards.forEach { cards.add(it.toPbCard()) }
                         messageCard = fsm.messageCard.toPbCard()

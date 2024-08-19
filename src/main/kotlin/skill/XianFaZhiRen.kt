@@ -47,7 +47,7 @@ class XianFaZhiRen : ActiveSkill, TriggeredSkill {
             val g = r.game!!
             g.players.send { p ->
                 if (p === r) waitForSkillXianFaZhiRenAToc {
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     val seq = p.seq
                     this.seq = seq
                     p.timeout = GameExecutor.post(g, {
@@ -55,7 +55,7 @@ class XianFaZhiRen : ActiveSkill, TriggeredSkill {
                             g.tryContinueResolveProtocol(p, skillXianFaZhiRenATos { this.seq = seq })
                     }, p.getWaitSeconds(waitingSecond + 2).toLong(), TimeUnit.SECONDS)
                 }
-                else unknownWaitingToc { waitingSecond = Config.WaitSecond }
+                else unknownWaitingToc { waitingSecond = g.waitSecond }
             }
             if (r is RobotPlayer) {
                 GameExecutor.post(g, {
@@ -118,7 +118,7 @@ class XianFaZhiRen : ActiveSkill, TriggeredSkill {
             player.game!!.playerSetRoleFaceUp(player, true)
             logger.info("${player}发动了[先发制人]，弃掉了${target}面前的$card")
             player.game!!.deck.discard(card)
-            val timeout = Config.WaitSecond
+            val timeout = player.game!!.waitSecond
             player.game!!.players.send { p ->
                 skillXianFaZhiRenAToc {
                     enable = message.enable
@@ -177,7 +177,7 @@ class XianFaZhiRen : ActiveSkill, TriggeredSkill {
         r.game!!.playerSetRoleFaceUp(r, true)
         logger.info("${r}发动了[先发制人]，弃掉了${target}面前的$card")
         r.game!!.deck.discard(card)
-        val timeout = Config.WaitSecond
+        val timeout = g.waitSecond
         r.game!!.players.send { p ->
             skillXianFaZhiRenAToc {
                 enable = message.enable

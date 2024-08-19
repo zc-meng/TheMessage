@@ -35,7 +35,7 @@ class XiangJinSiSuo : TriggeredSkill {
             r.game!!.players.send { player ->
                 skillWaitForXiangJinSiSuoToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond / 2
+                    waitingSecond = r.game!!.waitSecond / 2
                     if (player === r) {
                         val seq = player.seq
                         this.seq = seq
@@ -73,8 +73,9 @@ class XiangJinSiSuo : TriggeredSkill {
                         }
                         var v = Int.MIN_VALUE
                         var bestTarget = availablePlayers[0]
-                        for (t in availablePlayers) {
-                            val v1 = r.calculateMessageCardValue(whoseTurn, t, event.messageCard, sender = sender)
+                        for ((i, t) in availablePlayers.withIndex()) {
+                            var v1 = r.calculateMessageCardValue(whoseTurn, t, event.messageCard, sender = sender)
+                            if (i > 0) v1 -= 10
                             if (v1 > v) {
                                 v = v1
                                 bestTarget = t
@@ -139,7 +140,9 @@ class XiangJinSiSuo : TriggeredSkill {
         }
     }
 
-    private class XiangJinSiSuo2(val target: Player) : TriggeredSkill, OneTurnSkill {
+    private class XiangJinSiSuo2(val target: Player) :
+        TriggeredSkill,
+        OneTurnSkill {
         override val skillId = SkillId.UNKNOWN
 
         override val isInitialSkill = false

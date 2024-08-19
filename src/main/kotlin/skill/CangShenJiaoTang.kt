@@ -27,7 +27,7 @@ class CangShenJiaoTang : TriggeredSkill {
         } ?: return null
         val target = event.inFrontOfWhom
         val isHiddenRole = !target.isPublicRole
-        val timeoutSecond = Config.WaitSecond
+        val timeoutSecond = g.waitSecond
         g.players.send { player ->
             skillCangShenJiaoTangAToc {
                 playerId = player.getAlternativeLocation(askWhom.location)

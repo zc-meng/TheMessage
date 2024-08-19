@@ -89,7 +89,7 @@ class MiaoBiQiaoBian : ActiveSkill {
                     targetPlayerId = p.getAlternativeLocation(target1.location)
                     cardId = card1.id
                     if (canTakeAnother) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = g.waitSecond
                         if (p === r) {
                             val seq2 = p.seq
                             seq = seq2

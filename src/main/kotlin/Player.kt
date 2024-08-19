@@ -43,6 +43,9 @@ abstract class Player protected constructor() {
      */
     var weiBiFailRate = 1
 
+    /** 本回合是否使用过牌 */
+    var useCardThisTurn = false
+
     var roleSkillsData = RoleSkillsData()
         set(value) {
             field = value.copy()
@@ -116,7 +119,7 @@ abstract class Player protected constructor() {
         inFrontOfWhom: Player,
         messageCard: Card,
         waitingPlayer: Player,
-        waitSecond: Int = Config.WaitSecond
+        waitSecond: Int = game!!.waitSecond
     )
 
     open fun init() {

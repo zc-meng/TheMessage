@@ -3,6 +3,7 @@ package com.fengsheng.skill
 import com.fengsheng.Player
 import com.fengsheng.phase.FightPhaseIdle
 import com.fengsheng.protos.Common.card_type
+import com.fengsheng.protos.Common.card_type.*
 
 /**
  * 本回合不能出牌
@@ -32,6 +33,12 @@ fun Player.hasNoSkillForFightPhase(fightPhase: FightPhaseIdle) =
 fun Player.cannotPlayCardAndSkillForFightPhase(fightPhase: FightPhaseIdle) =
     (skills.any { it is CannotPlayCard && it.forbidAllCard } || cards.isEmpty()) && // 不能出牌或者没有手牌
         hasNoSkillForFightPhase(fightPhase) // 没有争夺阶段可以用的主动技能
+
+private val fightPhaseCards = listOf(Jie_Huo, Wu_Dao, Diao_Bao)
+
+fun Player.hasNothingToDoForFightPhase(fightPhase: FightPhaseIdle) =
+    fightPhaseCards.all { cannotPlayCard(it) || cards.all { card -> !(canUseCardTypes(it, card).first) } } && // 没有能用的牌
+        !skills.any { it is ActiveSkill && it.canUse(fightPhase, this) } // 没有争夺阶段可以用的主动技能
 
 fun Player.cannotPlayCardAndSkillForChengQing() =
     (skills.any { it is CannotPlayCard && it.forbidAllCard } || cards.isEmpty()) && // 不能出牌或者没有手牌

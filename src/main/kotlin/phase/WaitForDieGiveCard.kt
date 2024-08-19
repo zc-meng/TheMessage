@@ -31,7 +31,7 @@ data class WaitForDieGiveCard(
         val whoDie = diedQueue[diedIndex]
         if (whoDie.cards.isEmpty()) return ResolveResult(AfterDieGiveCard(this), true)
         for (p in whoDie.game!!.players) {
-            p!!.waitForDieGiveCard(whoDie, Config.WaitSecond * 4 / 3)
+            p!!.waitForDieGiveCard(whoDie, whoDie.game!!.waitSecond * 4 / 3)
         }
         return null
     }

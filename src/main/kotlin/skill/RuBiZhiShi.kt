@@ -78,7 +78,7 @@ class RuBiZhiShi : ActiveSkill {
                 skillRuBiZhiShiAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
-                    waitingSecond = Config.WaitSecond * 2
+                    waitingSecond = g.waitSecond * 2
                     if (p === r) {
                         target.cards.forEach { cards.add(it.toPbCard()) }
                         val seq = p.seq

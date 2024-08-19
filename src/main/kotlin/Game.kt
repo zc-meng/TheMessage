@@ -44,9 +44,26 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     var deck = Deck(this)
     var fsm: Fsm? = null
     var possibleSecretTasks: List<secret_task> = emptyList()
+    var realTurn = 0
     var turn = 0
+    var playTime: Long = 0
     val isEarly: Boolean
         get() = turn <= players.size
+
+    val waitSecond: Int
+        get() {
+            val cnt = players.count { it is HumanPlayer }
+            return when (cnt) {
+                1 -> Config.WaitSeconds * 2
+                2 -> Config.WaitSeconds
+                else -> (Config.WaitSeconds * (1 - 0.05 * cnt)).toInt()
+            }
+        }
+
+    var timeoutSecond = 0
+
+    /** 动画延迟时间（用于调包） **/
+    var animationDelayMs = 0L
 
     /**
      * 用于出牌阶段结束时提醒还未发动的技能
@@ -85,6 +102,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
             gameCount = count.gameCount
             score = Statistics.getScore(name) ?: 0
             rank = if (player is HumanPlayer) ScoreFactory.getRankNameByScore(score) else ""
+            title = player.playerTitle
         }
         players.forEach { if (it !== player && it is HumanPlayer) it.send(msg) }
         if (unready == 0) {
@@ -181,6 +199,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     fun end(declaredWinners: List<Player>?, winners: List<Player>?, forceEnd: Boolean = false) {
         isEnd = true
+        gameIdleTimeout?.cancel()
         val humanPlayers = players.filterIsInstance<HumanPlayer>()
         val addScoreMap = HashMap<String, Int>()
         val newScoreMap = HashMap<String, Int>()
@@ -307,8 +326,12 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     fun continueResolve() {
         gameIdleTimeout?.cancel()
         gameIdleTimeout = GameExecutor.post(this, {
-            if (!isEnd) fsm?.let { resolve(NextTurn(it.whoseTurn)) }
-        }, (Config.WaitSecond * 3).toLong(), TimeUnit.SECONDS)
+            if (!isEnd) fsm?.let {
+                logger.info("等待过久，当前时点为：$it")
+                players.send { errorMessageToc { msg = "疑似出现bug卡死，已自动跳转到下一回合" } }
+                resolve(NextTurn(it.whoseTurn))
+            }
+        }, (waitSecond * 3).toLong(), TimeUnit.SECONDS)
         while (true) {
             val result = fsm!!.resolve() ?: break
             fsm = result.next
@@ -353,7 +376,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
      * 遍历监听列表，结算技能
      */
     fun dealListeningSkill(beginLocation: Int): ResolveResult? {
-        repeat(100) { // 写个100，防止死循环
+        repeat(100) {
+            // 写个100，防止死循环
             if (resolvingEvents.isEmpty()) {
                 if (unresolvedEvents.isEmpty()) return null
                 resolvingEvents = unresolvedEvents

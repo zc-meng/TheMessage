@@ -44,6 +44,7 @@ class DiaoBao : Card {
 
     override fun execute(g: Game, r: Player, vararg args: Any) {
         val fsm = g.fsm as FightPhaseIdle
+        r.useCardThisTurn = true
         logger.info("${r}使用了$this")
         r.deleteCard(id)
         val resolveFunc = { _: Boolean ->
@@ -56,6 +57,7 @@ class DiaoBao : Card {
                     if (it === r) cardId = id
                 }
             }
+            g.animationDelayMs = 2000L
             val newFsm = fsm.copy(
                 messageCard = getOriginCard(),
                 isMessageCardFaceUp = false,
@@ -82,7 +84,5 @@ class DiaoBao : Card {
         g.resolve(ResolveCard(fsm.whoseTurn, r, null, getOriginCard(), Diao_Bao, resolveFunc, fsm))
     }
 
-    override fun toString(): String {
-        return "${cardColorToString(colors)}调包"
-    }
+    override fun toString(): String = "${cardColorToString(colors)}调包"
 }

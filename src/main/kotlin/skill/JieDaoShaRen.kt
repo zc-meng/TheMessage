@@ -93,7 +93,7 @@ class JieDaoShaRen : ActiveSkill {
                     targetPlayerId = p.getAlternativeLocation(target.location)
                     card = this@ExecuteJieDaoShaRen.card.toPbCard()
                     if (this@ExecuteJieDaoShaRen.card.isBlack()) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = g.waitSecond
                         if (p === r) {
                             val seq2 = p.seq
                             seq = seq2

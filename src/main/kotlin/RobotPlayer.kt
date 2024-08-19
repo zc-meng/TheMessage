@@ -113,13 +113,19 @@ class RobotPlayer : Player() {
 
     override fun startSendPhaseTimer(waitSecond: Int) {
         val fsm = game!!.fsm as SendPhaseIdle
-        for (card in cards) {
-            val ai = aiSendPhase[card.type] ?: continue
-            if (ai(fsm, card)) return
+        if (!cannotPlayCard(Po_Yi)) {
+            for (card in cards.sortCards(identity)) {
+                val (ok, convertCardSkill) = canUseCardTypes(Po_Yi, card)
+                ok || continue
+                val ai = aiSendPhase[card.type] ?: continue
+                if (ai(fsm, card, convertCardSkill)) return
+            }
         }
         GameExecutor.post(game!!, {
-            val receive = fsm.mustReceiveMessage() || // 如果必须接收，则接收
-                !fsm.cannotReceiveMessage() && // 如果不能接收，则不接收
+            val receive = fsm.mustReceiveMessage() ||
+                // 如果必须接收，则接收
+                !fsm.cannotReceiveMessage() &&
+                // 如果不能接收，则不接收
                 run {
                     val oldValue =
                         calculateMessageCardValue(fsm.whoseTurn, this, fsm.messageCard, sender = fsm.sender)
@@ -179,6 +185,8 @@ class RobotPlayer : Player() {
     override fun notifyFightPhase(waitSecond: Int) {
         val fsm = game!!.fsm as FightPhaseIdle
         this === fsm.whoseFightTurn || return
+        val delay = game!!.animationDelayMs
+        game!!.animationDelayMs = 0
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
             val human = game!!.players.first { it is HumanPlayer }!!
             if (isEnemy(human)) { // 对于低分的新人，敌方机器人可能不出牌
@@ -187,7 +195,7 @@ class RobotPlayer : Player() {
                     val score = info.score
                     val isPowerfulPlayer = info.winCount > 0 && info.winCount * 2 >= info.gameCount
                     if (!isPowerfulPlayer && score < 60 && Random.nextInt(60) >= score) {
-                        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
+                        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500 + delay, TimeUnit.MILLISECONDS)
                         return
                     }
                 }
@@ -197,18 +205,26 @@ class RobotPlayer : Player() {
             val ai = aiSkillFightPhase1[skill.skillId] ?: continue
             if (ai(fsm, skill as? ActiveSkill)) return
         }
-        if (!game!!.isEarly || this === fsm.whoseTurn ||
-            isPartnerOrSelf(fsm.inFrontOfWhom) && fsm.inFrontOfWhom.willDie(fsm.messageCard) ||
+        if (!game!!.isEarly ||
+            this === fsm.whoseTurn ||
+            isPartnerOrSelf(fsm.inFrontOfWhom) &&
+            fsm.inFrontOfWhom.willDie(fsm.messageCard) ||
             calculateMessageCardValue(fsm.whoseTurn, fsm.inFrontOfWhom, fsm.messageCard, sender = fsm.sender) <= -110) {
             val result = calFightPhase(fsm)
             if (result != null && result.deltaValue > 10) {
+                var actualDelay = 3L
+                var timeUnit = TimeUnit.SECONDS
+                if (delay > 0) {
+                    actualDelay = 3000L + delay
+                    timeUnit = TimeUnit.MILLISECONDS
+                }
                 GameExecutor.post(game!!, {
                     result.convertCardSkill?.onConvert(this)
                     if (result.cardType == Wu_Dao)
                         result.card.asCard(result.cardType).execute(game!!, this, result.wuDaoTarget!!)
                     else
                         result.card.asCard(result.cardType).execute(game!!, this)
-                }, 3, TimeUnit.SECONDS)
+                }, actualDelay, timeUnit)
                 return
             }
             for (skill in skills) {
@@ -216,7 +232,7 @@ class RobotPlayer : Player() {
                 if (ai(fsm, skill as ActiveSkill)) return
             }
         }
-        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500, TimeUnit.MILLISECONDS)
+        GameExecutor.post(game!!, { game!!.resolve(FightPhaseNext(fsm)) }, 500 + delay, TimeUnit.MILLISECONDS)
     }
 
     override fun notifyReceivePhase() {
@@ -280,22 +296,24 @@ class RobotPlayer : Player() {
         val fsm = game!!.fsm as WaitForDieGiveCard
         if (whoDie !== this) return
         GameExecutor.post(game!!, {
-            if (identity != Black) {
-                val target = game!!.players.find { it !== this && it!!.alive && it.identity == identity }
-                if (target != null) {
-                    val giveCards = cards.sortCards(identity, true).takeLast(3)
-                    if (giveCards.isNotEmpty()) {
-                        cards.removeAll(giveCards.toSet())
-                        target.cards.addAll(giveCards)
-                        game!!.addEvent(GiveCardEvent(fsm.whoseTurn, this, target))
-                        logger.info("${this}给了${target}${giveCards.joinToString()}")
-                        game!!.players.send { p ->
-                            notifyDieGiveCardToc {
-                                playerId = p.getAlternativeLocation(location)
-                                targetPlayerId = p.getAlternativeLocation(target.location)
-                                if (p === target) giveCards.forEach { card.add(it.toPbCard()) }
-                                else unknownCardCount = giveCards.size
-                            }
+            var target: Player? = null
+            if (identity != Black)
+                target = game!!.players.find { it !== this && it!!.alive && it.identity == identity }
+            if (target == null) // 如果没有人给，则随机挑一个本回合没有出过牌的人给
+                target = game!!.players.filter { it !== fsm.whoseTurn && it!!.alive && !it.useCardThisTurn }.randomOrNull()
+            if (target != null) {
+                val giveCards = cards.sortCards(identity, true).takeLast(3)
+                if (giveCards.isNotEmpty()) {
+                    cards.removeAll(giveCards.toSet())
+                    target.cards.addAll(giveCards)
+                    game!!.addEvent(GiveCardEvent(fsm.whoseTurn, this, target))
+                    logger.info("${this}给了${target}${giveCards.joinToString()}")
+                    game!!.players.send { p ->
+                        notifyDieGiveCardToc {
+                            playerId = p.getAlternativeLocation(location)
+                            targetPlayerId = p.getAlternativeLocation(target.location)
+                            if (p === target) giveCards.forEach { card.add(it.toPbCard()) }
+                            else unknownCardCount = giveCards.size
                         }
                     }
                 }
@@ -411,10 +429,9 @@ class RobotPlayer : Player() {
          * @param reverse 为`false`时，表示把有用的牌排在前面，没用的牌排在后面。不填为`false`
          * @return 一个新的`List`，包含了排列好的牌
          */
-        fun Iterable<Card>.sortCards(c: color, reverse: Boolean = false): List<Card> {
-            return if (reverse) sortedBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
+        fun Iterable<Card>.sortCards(c: color, reverse: Boolean = false): List<Card> =
+            if (reverse) sortedBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
             else sortedBy { cardOrder[it.type]!! + if (c in it.colors) 1 else 0 }
-        }
 
         /**
          * 获得最有（最无）价值的牌（换句话说，就是[sortCards]后的第一个）
@@ -424,10 +441,9 @@ class RobotPlayer : Player() {
          * @return 最有（最无）价值的牌
          * @throws NoSuchElementException 如果列表为空
          */
-        fun Iterable<Card>.bestCard(c: color, reverse: Boolean = false): Card {
-            return if (reverse) minBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
+        fun Iterable<Card>.bestCard(c: color, reverse: Boolean = false): Card =
+            if (reverse) minBy { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
             else minBy { cardOrder[it.type]!! + if (c in it.colors) 1 else 0 }
-        }
 
         /**
          * 获得最有（最无）价值的牌（换句话说，就是[sortCards]后的第一个）
@@ -436,9 +452,8 @@ class RobotPlayer : Player() {
          * @param reverse 为`false`时，表示最有价值的牌。不填为`false`
          * @return 最有（最无）价值的牌，如果列表为空，则返回`null`
          */
-        fun Iterable<Card>.bestCardOrNull(c: color, reverse: Boolean = false): Card? {
-            return if (reverse) minByOrNull { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
+        fun Iterable<Card>.bestCardOrNull(c: color, reverse: Boolean = false): Card? =
+            if (reverse) minByOrNull { -cardOrder[it.type]!! * 100 + if (c in it.colors) 1 else 0 }
             else minByOrNull { cardOrder[it.type]!! + if (c in it.colors) 1 else 0 }
-        }
     }
 }

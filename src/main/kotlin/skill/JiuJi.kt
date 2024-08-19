@@ -36,7 +36,7 @@ class JiuJi : TriggeredSkill {
                     fromPlayerId = player.getAlternativeLocation(event.player.location)
                     cardType = event.cardType
                     if (event.cardType != Shi_Tan) event.card?.let { card = it.toPbCard() }
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     val seq2 = player.seq
                     seq = seq2
                     player.timeout = GameExecutor.post(r.game!!, {
@@ -48,7 +48,7 @@ class JiuJi : TriggeredSkill {
                         }
                     }, player.getWaitSeconds(waitingSecond + 2).toLong(), TimeUnit.SECONDS)
                 }
-                else unknownWaitingToc { waitingSecond = Config.WaitSecond }
+                else unknownWaitingToc { waitingSecond = r.game!!.waitSecond }
             }
             if (r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {

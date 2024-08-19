@@ -83,7 +83,7 @@ class YunChouWeiWo : ActiveSkill {
             g.players.send { p ->
                 skillYunChouWeiWoAToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond * 2
+                    waitingSecond = g.waitSecond * 2
                     if (p === r) {
                         this@ExecuteYunChouWeiWo.cards.forEach { cards.add(it.toPbCard()) }
                         val seq2 = p.seq

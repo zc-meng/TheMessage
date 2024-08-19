@@ -58,7 +58,7 @@ class GuangFaBao : ActiveSkill {
             g.players.send { p ->
                 skillWaitForGuangFaBaoBToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond * 4 / 3
+                    waitingSecond = g.waitSecond * 4 / 3
                     if (p === r) {
                         val seq2 = p.seq
                         seq = seq2

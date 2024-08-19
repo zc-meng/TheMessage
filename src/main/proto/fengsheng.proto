@@ -53,6 +53,7 @@ message remove_one_position_toc {
 message display_record_tos {
   uint32 version = 1; // 客户端版本号
   string record_id = 2; // 录像ID
+  int32 skip_count = 3; // 跳过多少条协议
 }
 
 // 通知客户端录像播放完了
@@ -86,6 +87,7 @@ message get_room_info_toc {
   uint32          room_id = 9; // 房间号
   uint32          in_game_count = 10; // 正在进行游戏的桌数
   bool            is_double_role = 11; // 是否为双将模式
+  repeated string title = 12; // 称号
 }
 
 // 请求加一个机器人
@@ -104,6 +106,7 @@ message join_room_toc {
   uint32 game_count = 4;
   string rank = 5;
   int32  score = 6;
+  string title = 7; // 称号
 }
 
 // 请求修改房间信息
@@ -141,7 +144,6 @@ message wait_for_select_role_toc {
   repeated role roles = 4; // 发给你的角色
   uint32        waiting_second = 5; // 读多少秒
   repeated secret_task possible_secret_task = 6; // 可能的神秘人任务
-  uint32        position = 7; // 你的位置，最先出牌的是一号位
   bool          is_double_role = 8; // 是否为双将模式
 }
 

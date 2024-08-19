@@ -42,7 +42,7 @@ class LianXin : TriggeredSkill {
                 if (p === event.inFrontOfWhom)
                     p.notifyReceivePhase(event.whoseTurn, event.inFrontOfWhom, event.messageCard, event.inFrontOfWhom)
                 else if (p is HumanPlayer)
-                    p.send(unknownWaitingToc { waitingSecond = Config.WaitSecond })
+                    p.send(unknownWaitingToc { waitingSecond = event.whoseTurn.game!!.waitSecond })
             }
             return null
         }
@@ -86,7 +86,7 @@ class LianXin : TriggeredSkill {
                     targetPlayerId = p.getAlternativeLocation(target.location)
                     messageCard = event.messageCard.toPbCard()
                     if (hasNext) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = g.waitSecond
                         if (p === r) seq = p.seq
                     }
                 }
@@ -117,7 +117,7 @@ class LianXin : TriggeredSkill {
                             this.seq = seq
                         })
                     }
-                }, r.getWaitSeconds(Config.WaitSecond + 2).toLong(), TimeUnit.SECONDS)
+                }, r.getWaitSeconds(r.game!!.waitSecond + 2).toLong(), TimeUnit.SECONDS)
             } else {
                 var value = Int.MIN_VALUE
                 var card = r.cards.first(checkCard)

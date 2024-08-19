@@ -61,7 +61,7 @@ class YiHuaJieMu : ActiveSkill {
             r.game!!.players.send { p ->
                 skillYiHuaJieMuAToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond * 2
+                    waitingSecond = r.game!!.waitSecond * 2
                     if (p === r) {
                         val seq = p.seq
                         this.seq = seq

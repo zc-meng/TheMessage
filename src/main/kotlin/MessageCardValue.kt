@@ -576,16 +576,19 @@ fun Player.wantToSave(whoseTurn: Player, whoDie: Player): Boolean {
     val killer = game!!.players.find { it!!.alive && it.identity == Black && it.secretTask == Killer }
     val pioneer = game!!.players.find { it!!.alive && it.identity == Black && it.secretTask == Pioneer }
     val sweeper = game!!.players.find { it!!.alive && it.identity == Black && it.secretTask == Sweeper }
+    val stealer = game!!.players.find { it!!.alive && it.identity == Black && it.secretTask == Stealer }
     if (killer === whoseTurn && whoDie.messageCards.countTrueCard() >= 2) {
         if (killer === this) notSave = true
         save = save || killer !== this
     }
     if (pioneer === whoDie && whoDie.messageCards.countTrueCard() >= 1) {
-        if (pioneer === this) notSave = true
+        if (pioneer === this && whoseTurn !== stealer) notSave = true
+        if (stealer === this && whoseTurn === this) notSave = true
         save = save || pioneer !== this
     }
     if (sweeper != null && whoDie.messageCards.run { count(Red) <= 1 && count(Blue) <= 1 }) {
-        if (sweeper === this) notSave = true
+        if (sweeper === this && whoseTurn !== stealer) notSave = true
+        if (stealer === this && whoseTurn === this) notSave = true
         save = save || sweeper !== this
     }
     return !notSave && save

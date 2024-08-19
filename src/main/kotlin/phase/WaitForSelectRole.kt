@@ -2,14 +2,16 @@ package com.fengsheng.phase
 
 import com.fengsheng.*
 import com.fengsheng.protos.*
-import com.fengsheng.protos.Common.color.*
+import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.role.*
+import com.fengsheng.protos.Common.secret_task.Collector
 import com.fengsheng.protos.Fengsheng.select_role_tos
 import com.fengsheng.skill.RoleCache
 import com.fengsheng.skill.RoleSkillsData
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 /**
  * 等待玩家选择角色
@@ -18,7 +20,10 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
     private val selected = MutableList<RoleSkillsData?>(game.players.size) { null }
     override val whoseTurn = game.players.random()!!
 
+    private var endTime = 0L
+
     override fun resolve(): ResolveResult? {
+        endTime = System.currentTimeMillis() + game.waitSecond * 2 * 1000
         for (player in game.players) {
             if (player is HumanPlayer) {
                 if (player.needWaitLoad)
@@ -29,19 +34,16 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                     game.tryContinueResolveProtocol(player, selectRoleTos {
                         role = options[player.location].firstOrNull()?.role ?: unknown
                     })
-                }, player.getWaitSeconds(Config.WaitSecond * 2 + 2).toLong(), TimeUnit.SECONDS)
+                }, player.getWaitSeconds(game.waitSecond * 2 + 2).toLong(), TimeUnit.SECONDS)
             } else {
                 selected[player!!.location] = options[player.location].run {
                     if (Config.IsGmEnable) return@run firstOrNull()
                     val aiPreferRole = aiPreferRole.toMutableSet()
                     if (player.identity == Black) {
                         aiPreferRole -= sp_gu_xiao_meng
-                    }
-                    if (player.identity == Blue) {
-                        aiPreferRole -= cp_xiao_jiu
-                    }
-                    if (player.identity == Red) {
-                        aiPreferRole -= cp_han_mei
+                        if (player.secretTask == Collector) {
+                            aiPreferRole -= bai_xiao_nian
+                        }
                     }
                     filter { it.role in aiPreferRole }.ifEmpty {
                         RoleCache.filterForbidRoles(aiPreferRole).filter {
@@ -54,6 +56,7 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                 player.originRole = selected[player.location]!!.role
             }
         }
+        game.playTime = System.currentTimeMillis()
         for (role in selected) if (role == null) return null
         return ResolveResult(StartGame(game, whoseTurn), true)
     }
@@ -92,9 +95,8 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
             identity = player.identity
             secretTask = player.secretTask
             roles.addAll(options[player.location].map { it.role }.ifEmpty { listOf(unknown) })
-            waitingSecond = Config.WaitSecond * 2
+            waitingSecond = ((endTime - System.currentTimeMillis()) / 1000.0).roundToInt().coerceAtLeast(1)
             possibleSecretTask.addAll(game.possibleSecretTasks)
-            position = whoseTurn.getAlternativeLocation(player.location) + 1
         })
         if (game.players.size < 5)
             player.notifyIdentity()
@@ -160,8 +162,6 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
             chen_da_er,
             sun_shou_mo,
             huo_che_si_ji,
-            cp_xiao_jiu,
-            cp_han_mei,
             huang_ji_ren,
             sp_bai_fei_fei,
             han_mei,

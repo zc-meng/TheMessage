@@ -30,7 +30,7 @@ data class SendPhaseStart(override val whoseTurn: Player) : ProcessFsm() {
         if (!whoseTurn.alive)
             return ResolveResult(NextTurn(whoseTurn), true)
         for (p in game.players)
-            p!!.notifySendPhaseStart(Config.WaitSecond)
+            p!!.notifySendPhaseStart(game.waitSecond)
         return null
     }
 

@@ -96,7 +96,7 @@ class JianRen : TriggeredSkill {
                     playerId = p.getAlternativeLocation(r.location)
                     this.card = card.toPbCard()
                     if (isBlack && autoChoose != null) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = g.waitSecond
                         if (p === r) {
                             val seq2 = p.seq
                             seq = seq2

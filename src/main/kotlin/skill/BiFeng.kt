@@ -38,7 +38,7 @@ class BiFeng : TriggeredSkill {
             g.players.send { p ->
                 waitForSkillBiFengToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq = p.seq
                         this.seq = seq

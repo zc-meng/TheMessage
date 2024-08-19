@@ -74,7 +74,7 @@ class TanQiuZhenLi : MainPhaseSkill() {
         logger.info("${r}发动了[探求真理]，将${target}面前的${card}移到自己面前")
         target.deleteMessageCard(card.id)
         r.messageCards.add(card)
-        val waitingSecond = Config.WaitSecond
+        val waitingSecond = g.waitSecond
         g.players.send { p ->
             skillTanQiuZhenLiAToc {
                 playerId = p.getAlternativeLocation(r.location)

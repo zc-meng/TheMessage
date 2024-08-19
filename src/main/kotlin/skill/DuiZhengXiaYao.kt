@@ -59,7 +59,7 @@ class DuiZhengXiaYao : ActiveSkill {
             g.players.send { p ->
                 skillDuiZhengXiaYaoAToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq2 = p.seq
                         seq = seq2
@@ -182,7 +182,7 @@ class DuiZhengXiaYao : ActiveSkill {
                     playerId = p.getAlternativeLocation(r.location)
                     enable = true
                     this@ExecuteDuiZhengXiaYaoB.cards.forEach { cards.add(it.toPbCard()) }
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         val seq2 = p.seq
                         seq = seq2

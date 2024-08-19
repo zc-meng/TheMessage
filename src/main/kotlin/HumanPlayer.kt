@@ -12,6 +12,7 @@ import com.fengsheng.protos.Fengsheng.notify_player_update_toc
 import com.fengsheng.skill.ActiveSkill
 import com.fengsheng.skill.SkillId.*
 import com.fengsheng.skill.cannotPlayCardAndSkillForFightPhase
+import com.fengsheng.skill.hasNothingToDoForFightPhase
 import com.fengsheng.skill.mustReceiveMessage
 import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.util.JsonFormat
@@ -21,12 +22,10 @@ import io.netty.channel.ChannelFutureListener
 import io.netty.util.Timeout
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
-class HumanPlayer(
-    var channel: Channel,
-    var needWaitLoad: Boolean = false,
-    val newBodyFun: (String, ByteArray) -> Any
-) : Player() {
+class HumanPlayer(var channel: Channel, var needWaitLoad: Boolean = false, val newBodyFun: (String, ByteArray) -> Any) :
+    Player() {
     var seq = 0
         private set
 
@@ -94,8 +93,8 @@ class HumanPlayer(
         recorder.save(game!!, this, channel.isActive)
     }
 
-    fun loadRecord(version: Int, recordId: String) {
-        recorder.load(version, recordId, this)
+    fun loadRecord(version: Int, recordId: String, skipCount: Int) {
+        recorder.load(version, recordId, skipCount, this)
     }
 
     val isLoadingRecord: Boolean
@@ -137,11 +136,11 @@ class HumanPlayer(
             }
         } else {
             if (timeout != null && timeout!!.cancel()) {
-                var delay = Config.WaitSecond + 1
+                var delay = game!!.waitSecond + 1
                 if (game!!.fsm is MainPhaseIdle || game!!.fsm is WaitForDieGiveCard)
-                    delay = Config.WaitSecond * 4 / 3 + 1
+                    delay = game!!.waitSecond * 4 / 3 + 1
                 else if (game!!.fsm is WaitForSelectRole)
-                    delay = Config.WaitSecond * 2 + 1
+                    delay = game!!.waitSecond * 2 + 1
                 timeout =
                     GameExecutor.TimeWheel.newTimeout(timeout!!.task(), delay.toLong(), TimeUnit.SECONDS)
             }
@@ -301,7 +300,10 @@ class HumanPlayer(
 
     override fun notifyFightPhase(waitSecond: Int) {
         val fsm = game!!.fsm as FightPhaseIdle
-        val skip = cannotPlayCardAndSkillForFightPhase(fsm)
+        val (skip, skipTime) =
+            if (cannotPlayCardAndSkillForFightPhase(fsm)) true to 1
+            else if (hasNothingToDoForFightPhase(fsm)) true to 3 + Random.nextInt(5)
+            else false to waitSecond + 2
         send(notifyPhaseToc {
             currentPlayerId = getAlternativeLocation(fsm.whoseTurn.location)
             messagePlayerId = getAlternativeLocation(fsm.inFrontOfWhom.location)
@@ -315,9 +317,10 @@ class HumanPlayer(
                 timeout = GameExecutor.post(game!!, {
                     if (checkSeq(seq2)) {
                         incrSeq()
+                        if (skip) send(errorMessageToc { msg = "无牌可出，已经帮您自动跳过" })
                         game!!.resolve(FightPhaseNext(fsm))
                     }
-                }, if (skip) 1 else getWaitSeconds(waitSecond + 2).toLong(), TimeUnit.SECONDS)
+                }, getWaitSeconds(skipTime).toLong(), TimeUnit.SECONDS)
             }
         })
     }
@@ -455,20 +458,17 @@ class HumanPlayer(
         }
     }
 
-    fun checkSeq(seq: Int): Boolean {
-        return this.seq == seq
-    }
+    fun checkSeq(seq: Int): Boolean = this.seq == seq
 
     override fun incrSeq() {
         seq++
-        timeout?.cancel()
-        /*timeout?.also { timeout ->
+        timeout?.also { timeout ->
             if (timeout.isExpired) {
-                if (!autoPlay && ++timeoutCount >= 3) setAutoPlay(true)
+                if (game!!.timeoutSecond > 10 && !autoPlay && ++timeoutCount >= 2) setAutoPlay(true)
             } else {
                 timeout.cancel()
             }
-        }*/
+        }
         timeout = null
     }
 

@@ -101,7 +101,7 @@ class JingMeng : TriggeredSkill {
                 skillJingMengAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         target.cards.forEach { cards.add(it.toPbCard()) }
                         val seq2 = p.seq

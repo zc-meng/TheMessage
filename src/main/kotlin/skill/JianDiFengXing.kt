@@ -79,7 +79,7 @@ class JianDiFengXing : TriggeredSkill {
                 skillJianDiFengXingAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     if (hasBlack) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = r.game!!.waitSecond
                         if (p === r) {
                             val seq = p.seq
                             this.seq = seq
@@ -156,7 +156,7 @@ class JianDiFengXing : TriggeredSkill {
                     playerId = p.getAlternativeLocation(r.location)
                     card = this@ExecuteJianDiFengXingC.card.toPbCard()
                     if (messageExists) {
-                        waitingSecond = Config.WaitSecond
+                        waitingSecond = r.game!!.waitSecond
                         if (p === r) {
                             val seq = p.seq
                             this.seq = seq

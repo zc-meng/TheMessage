@@ -66,7 +66,7 @@ class WeiBi : Card {
                 weiBiWaitForGiveCardToc {
                     if (this@ExecuteWeiBi.card != null) card = this@ExecuteWeiBi.card.toPbCard()
                     wantType = this@ExecuteWeiBi.wantType
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
                     if (p === target) {

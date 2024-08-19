@@ -1,5 +1,6 @@
 package com.fengsheng.handler
 
+import com.fengsheng.GameExecutor
 import com.fengsheng.HumanPlayer
 import com.fengsheng.phase.WaitForSelectRole
 import com.google.protobuf.GeneratedMessage
@@ -9,8 +10,6 @@ class GameInitFinishTos : ProtoHandler {
     override fun handle(player: HumanPlayer, message: GeneratedMessage) {
         if (player.isLoadingRecord) {
             player.displayRecord()
-        } else if (player.isReconnecting) {
-            player.reconnect()
         } else {
             val game = player.game
             if (game == null) {
@@ -18,8 +17,12 @@ class GameInitFinishTos : ProtoHandler {
                 player.sendErrorMessage("找不到房间")
                 return
             }
-            val fsm = game.fsm as? WaitForSelectRole ?: return
-            fsm.notifySelectRole(player)
+            GameExecutor.post(game) {
+                if (player.isReconnecting)
+                    player.reconnect()
+                val fsm = game.fsm as? WaitForSelectRole ?: return@post
+                fsm.notifySelectRole(player)
+            }
         }
     }
 }

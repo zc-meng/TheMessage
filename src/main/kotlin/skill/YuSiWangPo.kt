@@ -70,7 +70,7 @@ class YuSiWangPo : MainPhaseSkill() {
         r.incrSeq()
         r.addSkillUseCount(skillId)
         logger.info("${r}对${target}发动了[鱼死网破]")
-        val timeout = Config.WaitSecond
+        val timeout = g.waitSecond
         g.players.send { p ->
             skillYuSiWangPoAToc {
                 playerId = p.getAlternativeLocation(r.location)

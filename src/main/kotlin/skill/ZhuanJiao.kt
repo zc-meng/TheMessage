@@ -36,7 +36,7 @@ class ZhuanJiao : TriggeredSkill {
             r.game!!.players.send { player ->
                 skillWaitForZhuanJiaoToc {
                     playerId = player.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = r.game!!.waitSecond
                     if (player === r) {
                         val seq2 = player.seq
                         seq = seq2

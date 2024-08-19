@@ -79,7 +79,7 @@ class MiaoShou : ActiveSkill {
                 skillMiaoShouAToc {
                     playerId = p.getAlternativeLocation(r.location)
                     targetPlayerId = p.getAlternativeLocation(target.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     messageCard = fsm.messageCard.toPbCard()
                     if (p === r) {
                         target.cards.forEach { cards.add(it.toPbCard()) }

@@ -64,7 +64,7 @@ class JinKouYiKai : ActiveSkill {
             g.players.send { p ->
                 skillJinKouYiKaiAToc {
                     playerId = p.getAlternativeLocation(r.location)
-                    waitingSecond = Config.WaitSecond
+                    waitingSecond = g.waitSecond
                     if (p === r) {
                         card = cards.first().toPbCard()
                         val seq2: Int = p.seq
