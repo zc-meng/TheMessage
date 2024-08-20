@@ -9,6 +9,7 @@ import com.fengsheng.protos.Common.direction
 import com.fengsheng.protos.Common.secret_task.*
 import com.fengsheng.protos.useChengQingToc
 import com.fengsheng.skill.ConvertCardSkill
+import com.fengsheng.skill.SkillId.*
 import com.fengsheng.skill.cannotPlayCard
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
@@ -113,6 +114,10 @@ class ChengQing : Card {
             val player = e.whoseTurn
             !(player.identity == Black && player.secretTask in listOf(Killer, Pioneer, Sweeper)) || return false
             !player.cannotPlayCard(Cheng_Qing) || return false
+            // 自己是秦无命和裴玲，如果还没有使用技能就不用澄清
+            player.findSkill(PIN_MING_SAN_LANG) == null || player.getSkillUseCount(PIN_MING_SAN_LANG) > 0 || return false
+            player.findSkill(JIAO_JI) == null || player.getSkillUseCount(JIAO_JI) > 0 || return false
+
             val g = player.game!!
             var value = 10
             var playerAndCard: PlayerAndCard? = null
