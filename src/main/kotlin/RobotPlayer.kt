@@ -30,7 +30,7 @@ class RobotPlayer : Player() {
         val fsm = game!!.fsm as MainPhaseIdle
         if (this !== fsm.whoseTurn) return
         for (skill in skills) {
-            val ai = aiSkillMainPhase[skill.skillId] ?: continue
+            val ai = aiSkillMainPhase1[skill.skillId] ?: continue
             if (ai(fsm, skill as ActiveSkill)) return
         }
         if (!Config.IsGmEnable && game!!.players.count { it is HumanPlayer } == 1) {
@@ -61,6 +61,10 @@ class RobotPlayer : Player() {
                     if (ai(fsm, card, convertCardSkill)) return
                 }
             }
+        }
+        for (skill in skills) {
+            val ai = aiSkillMainPhase2[skill.skillId] ?: continue
+            if (ai(fsm, skill as ActiveSkill)) return
         }
         GameExecutor.post(game!!, { game!!.resolve(SendPhaseStart(this)) }, 1, TimeUnit.SECONDS)
     }
@@ -323,10 +327,9 @@ class RobotPlayer : Player() {
     }
 
     companion object {
-        private val aiSkillMainPhase = hashMapOf(
+        private val aiSkillMainPhase1 = hashMapOf(
             XIN_SI_CHAO to XinSiChao::ai,
             GUI_ZHA to GuiZha::ai,
-            JIAO_JI to JiaoJi::ai,
             JIN_BI to JinBi::ai,
             JI_BAN to JiBan::ai,
             BO_AI to BoAi::ai,
@@ -334,11 +337,14 @@ class RobotPlayer : Player() {
             HUO_XIN to HuoXin::ai,
             YUN_CHOU_WEI_WO to YunChouWeiWo::ai,
             ZI_ZHENG_QING_BAI to ZiZhengQingBai::ai,
-            PIN_MING_SAN_LANG to PinMingSanLang::ai,
             YU_SI_WANG_PO to YuSiWangPo::ai,
             TAO_QU to TaoQu::ai,
             TAN_XU_BIAN_SHI to TanXuBianShi::ai,
             HOU_ZI_QIE_XIN to HouZiQieXin::ai,
+        )
+        private val aiSkillMainPhase2 = hashMapOf(
+            JIAO_JI to JiaoJi::ai,
+            PIN_MING_SAN_LANG to PinMingSanLang::ai,
         )
         private val aiSkillSendPhaseStart = hashMapOf(
             LENG_XUE_XUN_LIAN to LengXueXunLian::ai,
