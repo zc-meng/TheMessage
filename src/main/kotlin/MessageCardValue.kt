@@ -490,11 +490,12 @@ fun Player.calSendMessageCard(
     }
     val notUp = game!!.isEarly && !isYuQinGuZong && identity != Black && !skills.any { it is LianLuo } &&
         availableCards.any { card ->
-            !card.isPureBlack() && when (card.direction) {
-                Left -> calAveValue(card, 0.7, Player::getNextLeftAlivePlayer) >= 0
-                Right -> calAveValue(card, 0.7, Player::getNextRightAlivePlayer) >= 0
-                else -> false
-            }
+            !card.isPureBlack() &&
+                when (card.direction) {
+                    Left -> calAveValue(card, 0.7, Player::getNextLeftAlivePlayer) >= 0
+                    Right -> calAveValue(card, 0.7, Player::getNextRightAlivePlayer) >= 0
+                    else -> false
+                }
         }
     for (card in availableCards.sortCards(identity, true)) {
         val removedCard = if (isYuQinGuZong) deleteMessageCard(card.id) else null
@@ -560,7 +561,7 @@ fun Player.calSendMessageCard(
                 }
             }
         }
-        lockTarget?.let { if (result.dir == Up && it.isPartner(this) || it !== this) result.lockedPlayers = listOf(it) }
+        lockTarget?.let { if (result.dir == Up && isPartner(result.target) || it !== this) result.lockedPlayers = listOf(it) }
         removedCard?.let { messageCards.add(it) }
     }
     logger.debug("计算结果：${result.card}(cardId:${result.card.id})传递给${result.target}，方向是${result.dir}，分数为${result.value}")
