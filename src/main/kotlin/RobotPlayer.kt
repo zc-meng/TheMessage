@@ -337,14 +337,14 @@ class RobotPlayer : Player() {
             HUO_XIN to HuoXin::ai,
             YUN_CHOU_WEI_WO to YunChouWeiWo::ai,
             ZI_ZHENG_QING_BAI to ZiZhengQingBai::ai,
-            YU_SI_WANG_PO to YuSiWangPo::ai,
+            PIN_MING_SAN_LANG to PinMingSanLang::ai,
             TAO_QU to TaoQu::ai,
             TAN_XU_BIAN_SHI to TanXuBianShi::ai,
             HOU_ZI_QIE_XIN to HouZiQieXin::ai,
         )
         private val aiSkillMainPhase2 = hashMapOf(
             JIAO_JI to JiaoJi::ai,
-            PIN_MING_SAN_LANG to PinMingSanLang::ai,
+            YU_SI_WANG_PO to YuSiWangPo::ai,
         )
         private val aiSkillSendPhaseStart = hashMapOf(
             LENG_XUE_XUN_LIAN to LengXueXunLian::ai,
