@@ -7,7 +7,6 @@ import com.fengsheng.phase.OnFinishResolveCard
 import com.fengsheng.phase.ResolveCard
 import com.fengsheng.protos.*
 import com.fengsheng.protos.Common.card_type.*
-import com.fengsheng.protos.Common.card_type.Feng_Yun_Bian_Huan
 import com.fengsheng.protos.Common.color
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
@@ -196,24 +195,16 @@ class FengYunBianHuan : Card {
                         asMessageCard = true
                     } else {
                         if (r === mainPhaseIdle.whoseTurn) {
-                            // 不同角色会有不同的拿牌偏好，目前已完成：郑文先、sp李宁玉、池静海、盛老板、简先生
-                            cardId = when (r.role) {
-                                zheng_wen_xian ->
-                                    drawCards.filter { it.type == Wei_Bi || it.type == Diao_Bao || it.type == Po_Yi }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                sp_li_ning_yu, chi_jing_hai ->
-                                    drawCards.filter { it.type == Wei_Bi || it.type == Jie_Huo || it.type == Wu_Dao }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                sheng_lao_ban ->
-                                    drawCards.filter {
-                                        it.type == Wei_Bi || it.type == Jie_Huo || it.type == Feng_Yun_Bian_Huan
-                                    }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                jian_xian_sheng ->
-                                    drawCards.filter { it.type == Wei_Bi || it.type == Shi_Tan }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                else -> drawCards.bestCard(r.identity).id
-                            }
+                            cardId = drawCards.filter { it.type == Wei_Bi }.ifEmpty {
+                                // 不同角色会有不同的拿牌偏好，目前已完成：鄭文先、sp李宁玉、池静海、盛老板、简先生
+                                when (r.role) {
+                                    zheng_wen_xian -> drawCards.filter { it.type == Diao_Bao || it.type == Po_Yi }
+                                    sp_li_ning_yu, chi_jing_hai -> drawCards.filter { it.type == Jie_Huo || it.type == Wu_Dao }
+                                    sheng_lao_ban -> drawCards.filter { it.type == Jie_Huo || it.type == Feng_Yun_Bian_Huan }
+                                    jian_xian_sheng -> drawCards.filter { it.type == Shi_Tan }
+                                    else -> drawCards
+                                }
+                            }.ifEmpty { drawCards }.bestCard(r.identity).id
                             asMessageCard = false
                         } else {
                             cardId = when (r.role) {
