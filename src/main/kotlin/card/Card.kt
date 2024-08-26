@@ -5,6 +5,7 @@ import com.fengsheng.Player
 import com.fengsheng.protos.Common.*
 import com.fengsheng.protos.Common.card_type.*
 import com.fengsheng.protos.Common.color.*
+import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.card
 
 /**
@@ -168,3 +169,16 @@ fun Iterable<Card>.count(c: color) = count { c in it.colors }
 fun Iterable<Card>.filter(c: color) = filter { c in it.colors }
 
 fun Iterable<Card>.countTrueCard() = count { card -> card.colors.any { c -> c != Black } }
+
+/**
+ * 不同角色会有不同的拿牌偏好，目前已完成：鄭文先、sp李宁玉、池静海、盛老板、简先生、成年小九、成年韩梅
+ */
+fun Iterable<Card>.filterByRole(role: role): List<Card> = when (role) {
+    zheng_wen_xian -> filter { it.type == Diao_Bao || it.type == Po_Yi }
+    sp_li_ning_yu, chi_jing_hai -> filter { it.type == Jie_Huo || it.type == Wu_Dao }
+    sheng_lao_ban -> filter { it.type in listOf(Wei_Bi, Jie_Huo, Feng_Yun_Bian_Huan) }
+    jian_xian_sheng -> filter { it.type == Shi_Tan }
+    adult_xiao_jiu -> filter { it.type == Jie_Huo }
+    adult_han_mei -> filter { it.type == Wu_Dao }
+    else -> emptyList()
+}

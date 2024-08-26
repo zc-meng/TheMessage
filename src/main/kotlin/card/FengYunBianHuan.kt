@@ -6,12 +6,12 @@ import com.fengsheng.phase.MainPhaseIdle
 import com.fengsheng.phase.OnFinishResolveCard
 import com.fengsheng.phase.ResolveCard
 import com.fengsheng.protos.*
-import com.fengsheng.protos.Common.card_type.*
+import com.fengsheng.protos.Common.card_type.Feng_Yun_Bian_Huan
+import com.fengsheng.protos.Common.card_type.Wei_Bi
 import com.fengsheng.protos.Common.color
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
 import com.fengsheng.protos.Common.phase.Main_Phase
-import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.Common.secret_task.*
 import com.fengsheng.protos.Fengsheng.feng_yun_bian_huan_choose_card_tos
 import com.fengsheng.skill.ConvertCardSkill
@@ -194,26 +194,13 @@ class FengYunBianHuan : Card {
                         cardId = card.id
                         asMessageCard = true
                     } else {
-                        /**
-                         * 不同角色会有不同的拿牌偏好，目前已完成：鄭文先、sp李宁玉、池静海、盛老板、简先生、成年小九、成年韩梅
-                         */
-                        fun List<Card>.filterByRole(): List<Card> = when (r.role) {
-                            zheng_wen_xian -> filter { it.type == Diao_Bao || it.type == Po_Yi }
-                            sp_li_ning_yu, chi_jing_hai -> filter { it.type == Jie_Huo || it.type == Wu_Dao }
-                            sheng_lao_ban -> filter { it.type in listOf(Wei_Bi, Jie_Huo, Feng_Yun_Bian_Huan) }
-                            jian_xian_sheng -> filter { it.type == Shi_Tan }
-                            adult_xiao_jiu -> filter { it.type == Jie_Huo }
-                            adult_han_mei -> filter { it.type == Wu_Dao }
-                            else -> emptyList()
-                        }
-
                         cardId =
                             if (r === mainPhaseIdle.whoseTurn) {
                                 drawCards.filter { it.type == Wei_Bi } // 自己回合优先拿威逼
-                                    .ifEmpty { drawCards.filterByRole() } // 没有威逼先按拿牌偏好
+                                    .ifEmpty { drawCards.filterByRole(r.role) } // 没有威逼先按拿牌偏好
                                     .ifEmpty { drawCards } // 都没有就全随机
                             } else {
-                                drawCards.filterByRole() // 非自己回合按拿牌偏好
+                                drawCards.filterByRole(r.role) // 非自己回合按拿牌偏好
                                     .ifEmpty { drawCards } // 没有就全随机
                             }.bestCard(r.identity).id
                         asMessageCard = false
