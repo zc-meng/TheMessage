@@ -194,38 +194,29 @@ class FengYunBianHuan : Card {
                         cardId = card.id
                         asMessageCard = true
                     } else {
-                        if (r === mainPhaseIdle.whoseTurn) {
-                            cardId = drawCards.filter { it.type == Wei_Bi }.ifEmpty {
-                                // 不同角色会有不同的拿牌偏好，目前已完成：鄭文先、sp李宁玉、池静海、盛老板、简先生
-                                when (r.role) {
-                                    zheng_wen_xian -> drawCards.filter { it.type == Diao_Bao || it.type == Po_Yi }
-                                    sp_li_ning_yu, chi_jing_hai -> drawCards.filter { it.type == Jie_Huo || it.type == Wu_Dao }
-                                    sheng_lao_ban -> drawCards.filter { it.type == Jie_Huo || it.type == Feng_Yun_Bian_Huan }
-                                    jian_xian_sheng -> drawCards.filter { it.type == Shi_Tan }
-                                    else -> drawCards
-                                }
-                            }.ifEmpty { drawCards }.bestCard(r.identity).id
-                            asMessageCard = false
-                        } else {
-                            cardId = when (r.role) {
-                                zheng_wen_xian ->
-                                    drawCards.filter { it.type == Diao_Bao || it.type == Po_Yi }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                sp_li_ning_yu, chi_jing_hai ->
-                                    drawCards.filter { it.type == Jie_Huo || it.type == Wu_Dao }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                sheng_lao_ban ->
-                                    drawCards.filter {
-                                        it.type == Wei_Bi || it.type == Jie_Huo || it.type == Feng_Yun_Bian_Huan
-                                    }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                jian_xian_sheng ->
-                                    drawCards.filter { it.type == Shi_Tan }
-                                        .ifEmpty { drawCards }.bestCard(r.identity).id
-                                else -> drawCards.bestCard(r.identity).id
-                            }
-                            asMessageCard = false
+                        /**
+                         * 不同角色会有不同的拿牌偏好，目前已完成：鄭文先、sp李宁玉、池静海、盛老板、简先生、成年小九、成年韩梅
+                         */
+                        fun List<Card>.filterByRole(): List<Card> = when (r.role) {
+                            zheng_wen_xian -> filter { it.type == Diao_Bao || it.type == Po_Yi }
+                            sp_li_ning_yu, chi_jing_hai -> filter { it.type == Jie_Huo || it.type == Wu_Dao }
+                            sheng_lao_ban -> filter { it.type in listOf(Wei_Bi, Jie_Huo, Feng_Yun_Bian_Huan) }
+                            jian_xian_sheng -> filter { it.type == Shi_Tan }
+                            adult_xiao_jiu -> filter { it.type == Jie_Huo }
+                            adult_han_mei -> filter { it.type == Wu_Dao }
+                            else -> emptyList()
                         }
+
+                        cardId =
+                            if (r === mainPhaseIdle.whoseTurn) {
+                                drawCards.filter { it.type == Wei_Bi } // 自己回合优先拿威逼
+                                    .ifEmpty { drawCards.filterByRole() } // 没有威逼先按拿牌偏好
+                                    .ifEmpty { drawCards } // 都没有就全随机
+                            } else {
+                                drawCards.filterByRole() // 非自己回合按拿牌偏好
+                                    .ifEmpty { drawCards } // 没有就全随机
+                            }.bestCard(r.identity).id
+                        asMessageCard = false
                     }
                 })
             }
