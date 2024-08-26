@@ -69,7 +69,7 @@ object ScoreFactory : Logging {
             var negativeMultiple = 1.0
             operator fun timesAssign(multiple: Double) {
                 if (multiple >= 1.0) positiveMultiple += multiple - 1.0 // 加分加算
-                else negativeMultiple *= multiple.coerceAtLeast(0.01) // 减分乘算
+                else negativeMultiple *= multiple.coerceAtLeast(0.1) // 减分乘算
             }
 
             operator fun divAssign(v: Int) {
