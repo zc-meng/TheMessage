@@ -391,6 +391,7 @@ class HumanPlayer(var channel: Channel, var needWaitLoad: Boolean = false, val n
                 addScore.add(addScoreMap[player.playerName] ?: 0)
                 newScore.add(ns)
                 newRank.add(ScoreFactory.getRankNameByScore(ns))
+                alive.add(player.alive)
             }
         })
     }
