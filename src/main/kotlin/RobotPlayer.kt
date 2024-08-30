@@ -131,41 +131,35 @@ class RobotPlayer : Player() {
                 !fsm.cannotReceiveMessage() &&
                 // 如果不能接收，则不接收
                 run {
-                    val oldValue =
+                    val myValue = // 自己接的收益
                         calculateMessageCardValue(fsm.whoseTurn, this, fsm.messageCard, sender = fsm.sender)
-                    var newValue =
+                    val nextPlayer =
                         when (fsm.dir) {
-                            Left -> {
-                                val left = fsm.inFrontOfWhom.getNextLeftAlivePlayer()
-                                calculateMessageCardValue(fsm.whoseTurn, left, fsm.messageCard, sender = fsm.sender)
-                            }
-
-                            Right -> {
-                                val right = fsm.inFrontOfWhom.getNextRightAlivePlayer()
-                                calculateMessageCardValue(
-                                    fsm.whoseTurn,
-                                    right,
-                                    fsm.messageCard,
-                                    sender = fsm.sender
-                                )
-                            }
-
-                            else -> {
-                                calculateMessageCardValue(
-                                    fsm.whoseTurn,
-                                    fsm.sender,
-                                    fsm.messageCard,
-                                    sender = fsm.sender
-                                )
-                            }
+                            Left -> fsm.inFrontOfWhom.getNextLeftAlivePlayer()
+                            Right -> fsm.inFrontOfWhom.getNextRightAlivePlayer()
+                            else -> fsm.sender
                         }
-                    newValue = (newValue * 10 + calculateMessageCardValue(
-                        fsm.whoseTurn,
-                        fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first(),
-                        fsm.messageCard,
-                        sender = fsm.sender
-                    )) / 11
-                    newValue <= oldValue
+                    // 我看下家的收益
+                    val myNextValue = calculateMessageCardValue(fsm.whoseTurn, nextPlayer, fsm.messageCard, sender = fsm.sender)
+                    // 下家看自己的收益
+                    val nextNextValue = nextPlayer.calculateMessageCardValue(
+                        fsm.whoseTurn, nextPlayer, fsm.messageCard, sender = fsm.sender
+                    )
+                    // 下家看自己的收益和我看自己的收益都大于等于0时，才考虑比较双方收益，否则就不接
+                    if (myValue >= 0 && nextNextValue >= 0) {
+                        if (myValue >= myNextValue) return@run true // 自己比下家收益高就接
+                    }
+                    val lockPlayer = fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first()
+                    if (isPartner(lockPlayer)) { // 场上有被锁的队友
+                        val lockValue = calculateMessageCardValue(
+                            fsm.whoseTurn,
+                            lockPlayer,
+                            fsm.messageCard,
+                            sender = fsm.sender
+                        )
+                        if (lockValue < myValue) return@run true // 被锁的队友收益小于自己就接
+                    }
+                    false // 其它情况都不接
                 }
             game!!.resolve(
                 if (receive)
