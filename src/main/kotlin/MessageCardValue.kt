@@ -236,7 +236,7 @@ fun Player.calculateMessageCardValue(
             v1 += valueMe
             inFrontOfWhom.messageCards.removeLast()
         }
-        if (Black !in colors && sender.skills.any { it is ChiZiZhiXin }) {
+        if (Black !in colors && sender.skills.any { it is ChiZiZhiXin } && sender !== inFrontOfWhom) {
             inFrontOfWhom.messageCards.add(TmpCard(colors))
             var valueSender = 30
             var valueMe = 0
