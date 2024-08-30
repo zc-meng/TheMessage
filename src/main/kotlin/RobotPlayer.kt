@@ -145,9 +145,10 @@ class RobotPlayer : Player() {
                     val nextNextValue = nextPlayer.calculateMessageCardValue(
                         fsm.whoseTurn, nextPlayer, fsm.messageCard, sender = fsm.sender
                     )
-                    // 下家看自己的收益和我看自己的收益都大于等于0时，才考虑比较双方收益，否则就不接
-                    if (myValue >= 0 && nextNextValue >= 0) {
-                        if (myValue >= myNextValue) return@run true // 自己比下家收益高就接
+                    // 下家看自己的收益或我看自己的收益大于等于0时，才考虑比较双方收益，如果都小于0就不接
+                    if (myValue >= 0 || nextNextValue >= 0) {
+                        if (myValue > myNextValue) return@run true // 自己比下家收益高就接
+                        if (myValue == myNextValue && myValue >= 0) return@run true // 相等的情况下，收益不为负就接
                     }
                     val lockPlayer = fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first()
                     if (isPartner(lockPlayer)) { // 场上有被锁的队友
