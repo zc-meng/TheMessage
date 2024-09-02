@@ -272,7 +272,7 @@ fun Player.calculateMessageCardValue(
         }
         if (Black in colors && inFrontOfWhom.skills.any { it is YiXin } && inFrontOfWhom.messageCards.count(Black) == 2) {
             // 李宁玉【遗信】
-            var liNingYuValue = Int.MIN_VALUE
+            var liNingYuValue = -1
             var myValue = 0
             for (handCard in inFrontOfWhom.cards) {
                 for (p in game!!.players) {
@@ -289,7 +289,7 @@ fun Player.calculateMessageCardValue(
         if (Black in colors && inFrontOfWhom.skills.any { it is RuGui } && inFrontOfWhom.messageCards.count(Black) == 2) {
             // 老汉【如归】
             if (whoseTurn !== inFrontOfWhom && whoseTurn.alive) {
-                var laoHanValue = Int.MIN_VALUE
+                var laoHanValue = -1
                 var myValue = 0
                 for (mCard in inFrontOfWhom.messageCards + TmpCard(colors)) {
                     val v = inFrontOfWhom.calculateMessageCardValue(whoseTurn, whoseTurn, mCard)
