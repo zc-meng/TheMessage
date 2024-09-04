@@ -131,41 +131,36 @@ class RobotPlayer : Player() {
                 !fsm.cannotReceiveMessage() &&
                 // 如果不能接收，则不接收
                 run {
-                    val oldValue =
+                    val myValue = // 自己接的收益
                         calculateMessageCardValue(fsm.whoseTurn, this, fsm.messageCard, sender = fsm.sender)
-                    var newValue =
+                    val nextPlayer =
                         when (fsm.dir) {
-                            Left -> {
-                                val left = fsm.inFrontOfWhom.getNextLeftAlivePlayer()
-                                calculateMessageCardValue(fsm.whoseTurn, left, fsm.messageCard, sender = fsm.sender)
-                            }
-
-                            Right -> {
-                                val right = fsm.inFrontOfWhom.getNextRightAlivePlayer()
-                                calculateMessageCardValue(
-                                    fsm.whoseTurn,
-                                    right,
-                                    fsm.messageCard,
-                                    sender = fsm.sender
-                                )
-                            }
-
-                            else -> {
-                                calculateMessageCardValue(
-                                    fsm.whoseTurn,
-                                    fsm.sender,
-                                    fsm.messageCard,
-                                    sender = fsm.sender
-                                )
-                            }
+                            Left -> fsm.inFrontOfWhom.getNextLeftAlivePlayer()
+                            Right -> fsm.inFrontOfWhom.getNextRightAlivePlayer()
+                            else -> fsm.sender
                         }
-                    newValue = (newValue * 10 + calculateMessageCardValue(
-                        fsm.whoseTurn,
-                        fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first(),
-                        fsm.messageCard,
-                        sender = fsm.sender
-                    )) / 11
-                    newValue <= oldValue
+                    // 我看下家的收益
+                    val myNextValue = calculateMessageCardValue(fsm.whoseTurn, nextPlayer, fsm.messageCard, sender = fsm.sender)
+                    // 下家看自己的收益
+                    val nextNextValue = nextPlayer.calculateMessageCardValue(
+                        fsm.whoseTurn, nextPlayer, fsm.messageCard, sender = fsm.sender
+                    )
+                    // 下家看自己的收益或我看自己的收益大于等于0时，才考虑比较双方收益，如果都小于0就不接
+                    if (myValue >= 0 || nextNextValue >= 0) {
+                        if (myValue > myNextValue) return@run true // 自己比下家收益高就接
+                        if (myValue == myNextValue && myValue >= 0) return@run true // 相等的情况下，收益不为负就接
+                    }
+                    val lockPlayer = fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first()
+                    if (isPartner(lockPlayer)) { // 场上有被锁的队友
+                        val lockValue = calculateMessageCardValue(
+                            fsm.whoseTurn,
+                            lockPlayer,
+                            fsm.messageCard,
+                            sender = fsm.sender
+                        )
+                        if (lockValue < myValue) return@run true // 被锁的队友收益小于自己就接
+                    }
+                    false // 其它情况都不接
                 }
             game!!.resolve(
                 if (receive)
@@ -337,6 +332,7 @@ class RobotPlayer : Player() {
             HUO_XIN to HuoXin::ai,
             YUN_CHOU_WEI_WO to YunChouWeiWo::ai,
             ZI_ZHENG_QING_BAI to ZiZhengQingBai::ai,
+            PIN_MING_SAN_LANG to PinMingSanLang::ai,
             YU_SI_WANG_PO to YuSiWangPo::ai,
             TAO_QU to TaoQu::ai,
             TAN_XU_BIAN_SHI to TanXuBianShi::ai,
@@ -344,7 +340,6 @@ class RobotPlayer : Player() {
         )
         private val aiSkillMainPhase2 = hashMapOf(
             JIAO_JI to JiaoJi::ai,
-            PIN_MING_SAN_LANG to PinMingSanLang::ai,
         )
         private val aiSkillSendPhaseStart = hashMapOf(
             LENG_XUE_XUN_LIAN to LengXueXunLian::ai,

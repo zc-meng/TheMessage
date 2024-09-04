@@ -2,6 +2,7 @@ package com.fengsheng.skill
 
 import com.fengsheng.*
 import com.fengsheng.phase.SendPhaseIdle
+import com.fengsheng.protos.Common.direction.Left
 import com.fengsheng.protos.Common.direction.Up
 import com.fengsheng.protos.Role.skill_xin_ge_lian_luo_tos
 import com.fengsheng.protos.skillWaitForXinGeLianLuoToc
@@ -20,13 +21,13 @@ class XinGeLianLuo : TriggeredSkill {
     override val isInitialSkill = true
 
     override fun execute(g: Game, askWhom: Player): ResolveResult? {
-        g.findEvent<SendCardEvent>(this) { event ->
+        val e = g.findEvent<SendCardEvent>(this) { event ->
             askWhom === event.sender && event.dir !== Up
         } ?: return null
-        return ResolveResult(ExecuteXinGeLianLuo(g.fsm!!, askWhom), true)
+        return ResolveResult(ExecuteXinGeLianLuo(g.fsm!!, e, askWhom), true)
     }
 
-    private data class ExecuteXinGeLianLuo(val fsm: Fsm, val r: Player) : WaitingFsm {
+    private data class ExecuteXinGeLianLuo(val fsm: Fsm, val e: SendCardEvent, val r: Player) : WaitingFsm {
         override val whoseTurn: Player
             get() = fsm.whoseTurn
 
@@ -51,11 +52,15 @@ class XinGeLianLuo : TriggeredSkill {
             }
             if (r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {
-                    val target = r.game!!.players.filter { it!!.alive && it.isEnemy(r) }.randomOrNull()
+                    var target = e.targetPlayer
+                    for (i in 0..10) { // 随便写个10，防止死循环
+                        if (r.isEnemy(target) || target in e.lockedPlayers || target == e.sender) break
+                        target = if (e.dir == Left) target.getNextLeftAlivePlayer() else target.getNextRightAlivePlayer()
+                    }
                     r.game!!.tryContinueResolveProtocol(r, skillXinGeLianLuoTos {
-                        target?.let {
+                        if (r.isEnemy(target) && target !in e.lockedPlayers) {
                             enable = true
-                            targetPlayerId = r.getAlternativeLocation(it.location)
+                            targetPlayerId = r.getAlternativeLocation(target.location)
                         }
                     })
                 }, 3, TimeUnit.SECONDS)

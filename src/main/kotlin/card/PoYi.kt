@@ -7,11 +7,13 @@ import com.fengsheng.phase.SendPhaseIdle
 import com.fengsheng.protos.Common.card_type.Po_Yi
 import com.fengsheng.protos.Common.color
 import com.fengsheng.protos.Common.direction
+import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.Fengsheng.po_yi_show_tos
 import com.fengsheng.protos.poYiShowToc
 import com.fengsheng.protos.poYiShowTos
 import com.fengsheng.protos.usePoYiToc
 import com.fengsheng.skill.ConvertCardSkill
+import com.fengsheng.skill.SkillId.HUAN_RI
 import com.fengsheng.skill.cannotPlayCard
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
@@ -136,7 +138,10 @@ class PoYi : Card {
             val player = e.inFrontOfWhom
             card.type == Po_Yi || return false // 机器人不要把别的牌当破译用
             !player.cannotPlayCard(Po_Yi) || return false
-            !e.isMessageCardFaceUp && e.messageCard.isBlack() || return false
+            // 郑文先面朝上时，手里有破译就出
+            player.findSkill(HUAN_RI) != null && player.roleFaceUp ||
+                !e.isMessageCardFaceUp && e.messageCard.isBlack() ||
+                return false
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
                 card.asCard(Po_Yi).execute(player.game!!, player)

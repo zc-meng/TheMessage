@@ -5,6 +5,7 @@ import com.fengsheng.ScoreFactory.logger
 import com.fengsheng.card.Card
 import com.fengsheng.card.count
 import com.fengsheng.card.countTrueCard
+import com.fengsheng.card.filter
 import com.fengsheng.phase.FightPhaseIdle
 import com.fengsheng.protos.Common.*
 import com.fengsheng.protos.Common.card_type.*
@@ -221,7 +222,7 @@ fun Player.calculateMessageCardValue(
             override fun canUse(g: Game, r: Player, vararg args: Any) = false
             override fun execute(g: Game, r: Player, vararg args: Any) = Unit
         }
-        if (sender.skills.any { it is MianLiCangZhen }) {
+        if (sender.skills.any { it is MianLiCangZhen }) { // 邵秀
             inFrontOfWhom.messageCards.add(TmpCard(colors))
             var valueSender = -1
             var valueMe = 0
@@ -236,7 +237,7 @@ fun Player.calculateMessageCardValue(
             v1 += valueMe
             inFrontOfWhom.messageCards.removeLast()
         }
-        if (Black !in colors && sender.skills.any { it is ChiZiZhiXin }) {
+        if (Black !in colors && sender.skills.any { it is ChiZiZhiXin } && sender !== inFrontOfWhom) { // 青年小九
             inFrontOfWhom.messageCards.add(TmpCard(colors))
             var valueSender = 30
             var valueMe = 0
@@ -256,7 +257,7 @@ fun Player.calculateMessageCardValue(
             inFrontOfWhom.messageCards.removeLast()
         }
         // TODO CP韩梅还要判断一下拿牌，这里就暂时先不写了
-        if (Blue in colors && sender.skills.any { it is AnCangShaJi }) {
+        if (Blue in colors && sender.skills.any { it is AnCangShaJi }) { // SP韩梅
             inFrontOfWhom.messageCards.add(TmpCard(colors))
             if (sender.cards.any { it.isPureBlack() }) {
                 val v = sender.calculateMessageCardValue(whoseTurn, inFrontOfWhom, listOf(Black))
@@ -266,6 +267,45 @@ fun Player.calculateMessageCardValue(
                 v1 += valueMe
             }
             inFrontOfWhom.messageCards.removeLast()
+        }
+        if (Black in colors && inFrontOfWhom.skills.any { it is ShiSi }) { // 老汉【视死】
+            if (isPartnerOrSelf(inFrontOfWhom)) {
+                v1 += 20
+            } else if (inFrontOfWhom.identity != Black && identity != Black) { // 自己是神秘人就无视，老汉是神秘人也无视
+                v1 -= 20
+            }
+        }
+        if (Black in colors && inFrontOfWhom.roleFaceUp &&
+            inFrontOfWhom.skills.any { it is YiXin } && inFrontOfWhom.messageCards.count(Black) == 2) {
+            // 李宁玉【遗信】
+            var liNingYuValue = -1
+            var myValue = 0
+            for (handCard in inFrontOfWhom.cards) {
+                for (p in game!!.players) {
+                    if (!p!!.alive || p === inFrontOfWhom) continue
+                    val v = inFrontOfWhom.calculateMessageCardValue(whoseTurn, p, handCard)
+                    if (v > liNingYuValue) {
+                        liNingYuValue = v
+                        myValue = calculateMessageCardValue(whoseTurn, p, handCard)
+                    }
+                }
+            }
+            v1 += myValue
+        }
+        if (Black in colors && inFrontOfWhom.skills.any { it is RuGui } && inFrontOfWhom.messageCards.count(Black) == 2) {
+            // 老汉【如归】
+            if (whoseTurn !== inFrontOfWhom && whoseTurn.alive) {
+                var laoHanValue = -1
+                var myValue = 0
+                for (mCard in inFrontOfWhom.messageCards + TmpCard(colors)) {
+                    val v = inFrontOfWhom.calculateMessageCardValue(whoseTurn, whoseTurn, mCard)
+                    if (v > laoHanValue) {
+                        laoHanValue = v
+                        myValue = calculateMessageCardValue(whoseTurn, whoseTurn, mCard)
+                    }
+                }
+                v1 += myValue
+            }
         }
     }
     return v1
@@ -572,6 +612,36 @@ fun Player.calSendMessageCard(
  * 是否要救人
  */
 fun Player.wantToSave(whoseTurn: Player, whoDie: Player): Boolean {
+    // 如果死亡的是老汉且有情报
+    if (whoDie.skills.any { it is RuGui } && whoDie.messageCards.isNotEmpty()) {
+        // 如果老汉和当前回合角色是同一身份+老汉情报区有该颜色情报+当前回合角色听牌
+        if (whoDie !== whoseTurn && whoDie.identity == whoseTurn.identity &&
+            !whoDie.messageCards.filter(whoDie.identity).isEmpty() &&
+            whoseTurn.messageCards.count(whoseTurn.identity) == 2) {
+            // 如果自己也是同一阵营，则不救
+            if (isPartnerOrSelf(whoDie)) {
+                return false
+            }
+            // 如果自己不是同一阵营，则救（防止发动技能后敌方胜利）
+            return true
+        }
+    }
+    // 如果死亡的是李宁玉且有手牌
+    if (whoDie.roleFaceUp && whoDie.skills.any { it is YiXin } && whoDie.cards.isNotEmpty()) {
+        // 如果李宁玉的队友听牌
+        if (whoDie.game!!.players.any {
+                it!!.alive && it !== whoDie && it.identity == whoDie.identity && it.messageCards.count(whoDie.identity) == 2
+            }) {
+            // 如果自己也是同一阵营，则不救
+            if (isPartnerOrSelf(whoDie)) {
+                val stealer = game!!.players.find { it!!.alive && it.identity == Black && it.secretTask == Stealer }
+                // 特殊情况：当前回合是篡夺者，则救
+                return whoseTurn === stealer
+            }
+            // 如果自己不是同一阵营，则救（防止发动技能后敌方胜利）
+            return true
+        }
+    }
     var save = isPartnerOrSelf(whoDie)
     var notSave = false
     val killer = game!!.players.find { it!!.alive && it.identity == Black && it.secretTask == Killer }

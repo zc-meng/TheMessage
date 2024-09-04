@@ -5,6 +5,7 @@ import com.fengsheng.card.count
 import com.fengsheng.card.countTrueCard
 import com.fengsheng.phase.SendPhaseIdle
 import com.fengsheng.protos.Common.color.Black
+import com.fengsheng.protos.Common.direction.Left
 import com.fengsheng.protos.Common.direction.Up
 import com.fengsheng.protos.Role.skill_workers_are_knowledgable_tos
 import com.fengsheng.protos.skillWaitForWorkersAreKnowledgableToc
@@ -27,15 +28,15 @@ class WorkersAreKnowledgable : ChangeDrawCardCountSkill, TriggeredSkill {
     override fun changeDrawCardCount(player: Player, oldCount: Int) = oldCount + player.messageCards.countTrueCard()
 
     override fun execute(g: Game, askWhom: Player): ResolveResult? {
-        g.findEvent<SendCardEvent>(this) { event ->
+        val e = g.findEvent<SendCardEvent>(this) { event ->
             askWhom === event.sender || return@findEvent false
             event.dir !== Up || return@findEvent false
             askWhom.messageCards.any { it.isBlack() }
         } ?: return null
-        return ResolveResult(ExecuteWorkersAreKnowledgable(g.fsm!!, askWhom), true)
+        return ResolveResult(ExecuteWorkersAreKnowledgable(g.fsm!!, e, askWhom), true)
     }
 
-    private data class ExecuteWorkersAreKnowledgable(val fsm: Fsm, val r: Player) : WaitingFsm {
+    private data class ExecuteWorkersAreKnowledgable(val fsm: Fsm, val e: SendCardEvent, val r: Player) : WaitingFsm {
         override val whoseTurn: Player
             get() = fsm.whoseTurn
 
@@ -60,11 +61,18 @@ class WorkersAreKnowledgable : ChangeDrawCardCountSkill, TriggeredSkill {
             }
             if (r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {
-                    val targets = r.game!!.players.filter { it!!.alive && it.isEnemy(r) }.shuffled()
-                        .take(r.messageCards.count(Black))
+                    val maxCount = r.messageCards.count(Black)
+                    val targets = ArrayList<Player>()
+                    var target = e.targetPlayer
+                    for (i in 0..10) { // 随便写个10，防止死循环
+                        if (target in e.lockedPlayers || target == e.sender) break
+                        if (r.isEnemy(target)) targets.add(target)
+                        if (targets.size >= maxCount) break
+                        target = if (e.dir == Left) target.getNextLeftAlivePlayer() else target.getNextRightAlivePlayer()
+                    }
                     r.game!!.tryContinueResolveProtocol(r, skillWorkersAreKnowledgableTos {
                         enable = targets.isNotEmpty()
-                        targets.forEach { targetPlayerId.add(r.getAlternativeLocation(it!!.location)) }
+                        targets.forEach { targetPlayerId.add(r.getAlternativeLocation(it.location)) }
                     })
                 }, 3, TimeUnit.SECONDS)
             }
