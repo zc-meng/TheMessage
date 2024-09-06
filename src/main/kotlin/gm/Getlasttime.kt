@@ -8,8 +8,8 @@ class Getlasttime : Function<Map<String, String>, Any> {
         return try {
             val name = form["name"]!!
             val playerInfo = Statistics.getPlayerInfo(name)
-            if (playerInfo == null || playerInfo.score <= 0) "{\"result\": 0}"
-            else "{\"result\": \"${System.currentTimeMillis() - playerInfo.lastTime}\"}"
+            if (playerInfo == null || playerInfo.energy <= 0) "{\"result\": 0}"
+            else "{\"result\": ${System.currentTimeMillis() - playerInfo.lastTime}}"
         } catch (e: NullPointerException) {
             "{\"error\": \"参数错误\"}"
         }
