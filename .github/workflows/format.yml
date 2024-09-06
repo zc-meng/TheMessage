@@ -8,6 +8,9 @@
 name: Format
 
 on:
+  push:
+    branches:
+      - kotlin
   pull_request_target:
     branches:
       - kotlin
