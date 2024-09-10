@@ -41,6 +41,7 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                     val aiPreferRole = aiPreferRole.toMutableSet()
                     if (player.identity == Black) {
                         aiPreferRole -= sp_gu_xiao_meng
+                        aiPreferRole -= bai_cang_lang
                         if (player.secretTask == Collector) {
                             aiPreferRole -= bai_xiao_nian
                         }
