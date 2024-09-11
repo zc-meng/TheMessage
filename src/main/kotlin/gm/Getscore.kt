@@ -1,5 +1,6 @@
 package com.fengsheng.gm
 
+import com.fengsheng.QQPusher
 import com.fengsheng.ScoreFactory
 import com.fengsheng.Statistics
 import java.util.function.Function
@@ -21,6 +22,9 @@ class Getscore : Function<Map<String, String>, Any> {
                 val energy = playerInfo.energy
                 var s = "$name·$rank·$score，总场次：$total，胜率：$winRate，精力：$energy"
                 if (playerInfo.score != score) s += "（长期不打会掉分，打一场即可全部恢复）"
+                val history = QQPusher.getHistory(name)
+                if (history.isNotEmpty())
+                    s += "\\\n\\\n最近${history.size}场战绩\\\n" + history.joinToString(separator = "\\\n")
                 "{\"result\": \"$s\"}"
             }
         } catch (e: NullPointerException) {

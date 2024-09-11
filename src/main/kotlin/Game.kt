@@ -242,8 +242,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 }
                 Statistics.addPlayerGameCount(playerGameResultList)
                 Statistics.calculateRankList()
-                if (humanPlayers.size > 1)
-                    QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap)
+                QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap, humanPlayers.size > 1)
             }
             players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
         }
