@@ -24,7 +24,7 @@ class Getscore : Function<Map<String, String>, Any> {
                 if (playerInfo.score != score) s += "（长期不打会掉分，打一场即可全部恢复）"
                 val history = QQPusher.getHistory(name)
                 if (history.isNotEmpty())
-                    s += "\\\n\\\n最近${history.size}场战绩\\\n" + history.joinToString(separator = "\\\n")
+                    s += "\\n\\n最近${history.size}场战绩\\n" + history.joinToString(separator = "\\n")
                 "{\"result\": \"$s\"}"
             }
         } catch (e: NullPointerException) {
