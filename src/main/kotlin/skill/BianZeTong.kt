@@ -125,7 +125,7 @@ class BianZeTong : TriggeredSkill {
     /**
      * 有这个技能的玩家，[cardTypeA]只能当作[cardTypeB]使用
      */
-    private class BianZeTong2(cardTypeA: card_type, cardTypeB: card_type) : OneTurnSkill,
+    class BianZeTong2(cardTypeA: card_type, cardTypeB: card_type) : OneTurnSkill,
         ConvertCardSkill(cardTypeA, listOf(cardTypeB), true) {
         override val isInitialSkill = false
     }
