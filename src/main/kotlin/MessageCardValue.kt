@@ -285,48 +285,42 @@ fun Player.calculateMessageCardValue(
             }
             inFrontOfWhom.messageCards.removeLast()
         }
-        if (Black in colors && inFrontOfWhom.skills.any { it is ShiSi }) { // 老汉【视死】
-            if (isPartnerOrSelf(inFrontOfWhom)) {
-                v1 += 20
-            } else if (inFrontOfWhom.identity != Black && identity != Black) { // 自己是神秘人就无视，老汉是神秘人也无视
-                v1 -= 20
+        fun addScore(p: Player, score: Int) {
+            if (p.identity != Black) { // 军潜：己方加分，敌方减分，神秘人不管
+                if (identity == p.identity) v1 += score
+                if (identity != p.identity && identity != Black) v1 -= score
+            } else if (p === this) { // 神秘人：自己加分，其他人不管
+                v1 += score
             }
         }
-        if (inFrontOfWhom.skills.any { it is ZhiYin }) { // 程小蝶【知音】
-            if (Black in colors) {
-                if (identity == inFrontOfWhom.identity) v1 += 10
-                if (identity != inFrontOfWhom.identity) v1 -= 10
+        if (Black in colors && inFrontOfWhom.skills.any { it is ShiSi }) { // 老汉【视死】
+            addScore(inFrontOfWhom, 20)
+        }
+        if (inFrontOfWhom.skills.any { it is ZhiYin }) { // 程小蝶【知音】【惊梦】
+            if (Black in colors) { // 惊梦
+                addScore(inFrontOfWhom, 10)
             }
-            if (inFrontOfWhom.identity != Black) {
-                if (identity == inFrontOfWhom.identity) v1 += 10
-                if (identity != inFrontOfWhom.identity) v1 -= 10
-            } else if (inFrontOfWhom === this) {
-                v1 += 10
-            }
-            if (sender.identity != Black) {
-                if (identity == sender.identity) v1 += 10
-                if (identity != sender.identity) v1 -= 10
-            } else if (sender === this) {
-                v1 += 10
+            if (colors.any { it != Black }) { // 知音
+                addScore(inFrontOfWhom, 10)
+                addScore(sender, 10)
             }
         }
         if (inFrontOfWhom.skills.any { it is MingEr }) { // 老鳖【明饵】
-            if (Black in colors) {
-                if (identity == inFrontOfWhom.identity) v1 += 10
-                if (identity != inFrontOfWhom.identity) v1 -= 10
+            if (colors.any { it != Black }) {
+                addScore(sender, 10)
+                addScore(inFrontOfWhom, 10)
             }
-            if (inFrontOfWhom.identity != Black) {
-                if (identity == inFrontOfWhom.identity) v1 += 10
-                if (identity != inFrontOfWhom.identity) v1 -= 10
-            } else if (inFrontOfWhom === this) {
-                v1 += 10
+        }
+        if (sender !== inFrontOfWhom && sender.roleFaceUp && sender.skills.any { it is ZhenLi }) {
+            // 李书云【真理】
+            if (colors.any { it != Black }) {
+                addScore(sender, 20)
             }
-            if (sender.identity != Black) {
-                if (identity == sender.identity) v1 += 10
-                if (identity != sender.identity) v1 -= 10
-            } else if (sender === this) {
-                v1 += 10
-            }
+        }
+        if (sender !== inFrontOfWhom && sender.skills.any { it is HanHouLaoShi }) {
+            // 哑炮【憨厚老实】
+            addScore(sender, -10)
+            addScore(inFrontOfWhom, 10)
         }
         if (Black in colors && inFrontOfWhom.roleFaceUp &&
             inFrontOfWhom.skills.any { it is YiXin } && inFrontOfWhom.messageCards.count(Black) == 2) {
