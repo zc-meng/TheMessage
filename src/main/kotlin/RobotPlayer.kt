@@ -8,7 +8,7 @@ import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
 import com.fengsheng.protos.Common.direction.Left
 import com.fengsheng.protos.Common.direction.Right
-import com.fengsheng.protos.Common.role.*
+import com.fengsheng.protos.Common.role.zhang_yi_ting
 import com.fengsheng.protos.Common.secret_task.*
 import com.fengsheng.protos.endReceivePhaseTos
 import com.fengsheng.protos.notifyDieGiveCardToc
@@ -150,14 +150,8 @@ class RobotPlayer : Player() {
                     if (myValue >= 0 || nextNextValue >= 0) {
                         if (myValue > myNextValue) return@run true // 自己比下家收益高就接
                         if (myValue == myNextValue && myValue >= 0) {
-                            // 下家和自己是队友，且下家是张一挺，王响，白小年就不接
-                            if (isPartner(nextPlayer) && (
-                                    nextPlayer.role == zhang_yi_ting ||
-                                        nextPlayer.role == huo_che_si_ji ||
-                                        nextPlayer.role == bai_xiao_nian)) {
-                                return@run false
-                            }
-                            return@run true // 相等的情况下，收益不为负就接
+                            // 相等的情况下，下家和自己是队友，且下家是张一挺就不接，否则接
+                            return@run !(isPartner(nextPlayer) && nextPlayer.role == zhang_yi_ting)
                         }
                     }
                     val lockPlayer = fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first()

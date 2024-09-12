@@ -324,6 +324,20 @@ fun Player.calculateMessageCardValue(
                 addScore(inFrontOfWhom, 10)
             }
         }
+        if (colors.any { it != Black } && inFrontOfWhom.skills.any { it is WorkersAreKnowledgable }) {
+            // 王响【咱们工人有知识】
+            addScore(inFrontOfWhom, 9)
+        }
+        if (Black !in colors && inFrontOfWhom.skills.any { it is ZhuanJiao || it is JiSong }) {
+            // 白小年【转交】、鬼脚【急送】
+            addScore(inFrontOfWhom, 11)
+        }
+        if (sender.skills.any { it is CangShenJiaoTang }) {
+            // 玛利亚【藏身教堂】
+            if (sender.isPartnerOrSelf(inFrontOfWhom) && !inFrontOfWhom.isPublicRole && inFrontOfWhom.roleFaceUp) {
+                addScore(inFrontOfWhom, 80)
+            }
+        }
         if (Black in colors && inFrontOfWhom.roleFaceUp &&
             inFrontOfWhom.skills.any { it is YiXin } && inFrontOfWhom.messageCards.count(Black) == 2) {
             // 李宁玉【遗信】

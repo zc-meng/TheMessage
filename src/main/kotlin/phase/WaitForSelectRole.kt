@@ -1,11 +1,15 @@
 package com.fengsheng.phase
 
 import com.fengsheng.*
-import com.fengsheng.protos.*
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.Common.secret_task.Collector
+import com.fengsheng.protos.Common.secret_task.Disturber
 import com.fengsheng.protos.Fengsheng.select_role_tos
+import com.fengsheng.protos.gameStartToc
+import com.fengsheng.protos.selectRoleToc
+import com.fengsheng.protos.selectRoleTos
+import com.fengsheng.protos.waitForSelectRoleToc
 import com.fengsheng.skill.RoleCache
 import com.fengsheng.skill.RoleSkillsData
 import com.google.protobuf.GeneratedMessage
@@ -44,6 +48,9 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                         aiPreferRole -= bai_cang_lang
                         if (player.secretTask == Collector) {
                             aiPreferRole -= bai_xiao_nian
+                        }
+                        if (player.secretTask == Disturber) {
+                            aiPreferRole -= huo_che_si_ji
                         }
                     }
                     filter { it.role in aiPreferRole }.ifEmpty {
