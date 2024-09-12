@@ -371,6 +371,8 @@ fun Player.calculateMessageCardValue(
             }
         }
     }
+    if (v1 > 460) v1 = 600
+    else if (v1 < -460) v1 = -600
     return v1
 }
 
