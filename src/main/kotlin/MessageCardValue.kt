@@ -319,8 +319,10 @@ fun Player.calculateMessageCardValue(
         }
         if (sender !== inFrontOfWhom && sender.skills.any { it is HanHouLaoShi }) {
             // 哑炮【憨厚老实】
-            addScore(sender, -10)
-            addScore(inFrontOfWhom, 10)
+            if (sender.cards.isNotEmpty()) {
+                addScore(sender, -10)
+                addScore(inFrontOfWhom, 10)
+            }
         }
         if (Black in colors && inFrontOfWhom.roleFaceUp &&
             inFrontOfWhom.skills.any { it is YiXin } && inFrontOfWhom.messageCards.count(Black) == 2) {
