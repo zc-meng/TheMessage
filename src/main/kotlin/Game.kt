@@ -242,7 +242,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 }
                 Statistics.addPlayerGameCount(playerGameResultList)
                 Statistics.calculateRankList()
-                QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap, humanPlayers.size > 1 || humanPlayers.playerName == "半藏")
+                QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap, humanPlayers.size > 1 ||
+                    humanPlayers[0].playerName == "半藏")
             }
             players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
         }
