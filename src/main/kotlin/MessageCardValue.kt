@@ -222,6 +222,16 @@ fun Player.calculateMessageCardValue(
             override fun canUse(g: Game, r: Player, vararg args: Any) = false
             override fun execute(g: Game, r: Player, vararg args: Any) = Unit
         }
+        if (colors.size == 2 && inFrontOfWhom.skills.any { it is JinShen }) { // 金生火
+            var valueInFrontOfWhom = 0
+            for (c in inFrontOfWhom.cards.toList()) {
+                val v = inFrontOfWhom.calculateMessageCardValue(whoseTurn, inFrontOfWhom, c.colors, checkThreeSame)
+                if (v > valueInFrontOfWhom) {
+                    valueInFrontOfWhom = v
+                    v1 = calculateMessageCardValue(whoseTurn, inFrontOfWhom, c.colors, checkThreeSame)
+                }
+            }
+        }
         if (sender.skills.any { it is MianLiCangZhen }) { // 邵秀
             inFrontOfWhom.messageCards.add(TmpCard(colors))
             var valueSender = -1
