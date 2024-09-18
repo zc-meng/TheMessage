@@ -222,9 +222,8 @@ fun Player.calculateMessageCardValue(
             override fun canUse(g: Game, r: Player, vararg args: Any) = false
             override fun execute(g: Game, r: Player, vararg args: Any) = Unit
         }
-        fun merge(a: Int, b: Int): Int =
-            if (a == 600 || b == 600) 600 // 其中一个已经赢了，就是赢了，以防共赢的情况下还非要出牌拦敌方
-            else a + b
+        fun merge(a: Int, b: Int): Int = if (a == 600 || b == 600) 600 // 其中一个已经赢了，就是赢了，以防共赢的情况下还非要出牌拦敌方
+        else a + b
         if (colors.size == 2 && inFrontOfWhom.skills.any { it is JinShen }) { // 金生火
             var valueInFrontOfWhom = 0
             for (c in inFrontOfWhom.cards.toList()) {
