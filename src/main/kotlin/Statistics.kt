@@ -360,8 +360,8 @@ object Statistics {
             sb.append(info.blackWinCount).append(',')
             sb.append(info.blackGameCount)
             listOf(Killer, Stealer, Collector, Mutator, Pioneer, Disturber, Sweeper).forEach {
-                sb.append(',').append(info.blacksWinCount[it])
-                sb.append(',').append(info.blacksGameCount[it])
+                sb.append(',').append(info.blacksWinCount[it] ?: 0)
+                sb.append(',').append(info.blacksGameCount[it] ?: 0)
             }
             sb.append('\n')
         }
