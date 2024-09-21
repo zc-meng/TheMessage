@@ -1,6 +1,7 @@
 package com.fengsheng
 
 import com.fengsheng.ScoreFactory.addScore
+import com.fengsheng.ScoreFactory.getSeasonTitleByScore
 import com.fengsheng.protos.Common.*
 import com.fengsheng.protos.Common.color.*
 import com.fengsheng.protos.Common.secret_task.*
@@ -316,10 +317,16 @@ object Statistics {
                 v.copy(
                     winCount = 0,
                     gameCount = 0,
-                    title = "",
+                    title = v.title + getSeasonTitleByScore(v.score),
                     score = v.score / 2,
                     energy = v.energy.coerceAtLeast(10),
-                    maxScore = v.score / 2
+                    maxScore = v.score / 2,
+                    rbWinCount = 0,
+                    rbGameCount = 0,
+                    blackWinCount = 0,
+                    blackGameCount = 0,
+                    blacksWinCount = emptyMap(),
+                    blacksGameCount = emptyMap(),
                 )
             }
         }
