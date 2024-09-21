@@ -317,7 +317,7 @@ object Statistics {
                 v.copy(
                     winCount = 0,
                     gameCount = 0,
-                    title = v.title + getSeasonTitleByScore(v.score),
+                    title = v.title + getSeasonTitleByScore(v.maxScore),
                     score = v.score / 2,
                     energy = v.energy.coerceAtLeast(10),
                     maxScore = v.score / 2,
