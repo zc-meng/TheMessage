@@ -19,6 +19,6 @@ class Register : Function<Map<String, String>, Any> {
     }
 
     companion object {
-        private val invalidString = listOf(",", "·", "{", "$", "}")
+        private val invalidString = listOf(",", "·", "{", "$", "}", " ", "\t", "\n", "\r")
     }
 }
