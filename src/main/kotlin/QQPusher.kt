@@ -104,7 +104,7 @@ object QQPusher {
             lines.add("$name,$roleName,$identity,$result,$rank,$newScore($addScoreStr)")
             map[name] = "$roleName,$identity,$result,$rank,$newScore($addScoreStr)"
         }
-        val text = lines.joinToString(separator = "\\n")
+        val text = lines.joinToString(separator = "\n")
         val at = runBlocking {
             mu.withLock {
                 notifyQueueOnEnd.toLongArray().apply { notifyQueueOnEnd.clear() }
@@ -144,13 +144,13 @@ object QQPusher {
     }
 
     private fun sendGroupMessage(groupId: Long, message: String, atAll: Boolean, vararg at: Long) {
-        val atStr =
-            if (atAll) "{\"type\":\"at\",\"data\":{\"qq\":\"all\"}},"
-            else at.joinToString(separator = "") { "{\"type\":\"at\",\"data\":{\"qq\":\"$it\"}}," }
-        val postData = """{
-            "group_id":$groupId,
-            "message":[$atStr{"type":"text","data":{"text":"$message"}}]
-        }""".trimMargin().toRequestBody(contentType)
+        val atMsg =
+            if (atAll) listOf(mapOf("type" to "at", "data" to mapOf("qq" to "all")))
+            else at.map { mapOf("type" to "at", "data" to mapOf("qq" to "$it")) }
+        val postData = gson.toJson(mapOf(
+            "group_id" to groupId,
+            "message" to atMsg + mapOf("type" to "text", "data" to mapOf("text" to message))
+        )).toRequestBody(contentType)
         val request = Request.Builder()
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer ${Config.MiraiVerifyKey}")

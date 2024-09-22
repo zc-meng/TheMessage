@@ -8,10 +8,10 @@ class Releaseplayer : Function<Map<String, String>, Any> {
         return try {
             val name = form["name"]!!
             if (Statistics.releasePlayer(name))
-                "{\"result\": \"${name}已解封\"}"
-            else "{\"result\": \"找不到玩家\"}"
+                gson.toJson(mapOf("result" to "${name}已解封"))
+            else gson.toJson(mapOf("result" to "找不到玩家"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

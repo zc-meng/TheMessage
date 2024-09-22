@@ -8,11 +8,11 @@ class Resetpwd : Function<Map<String, String>, Any> {
         return try {
             val name = form["name"]!!
             if (Statistics.resetPassword(name))
-                "{\"result\": \"重置成功\"}"
+                gson.toJson(mapOf("result" to "重置成功"))
             else
-                "{\"result\": \"玩家不存在\"}"
+                gson.toJson(mapOf("result" to "玩家不存在"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

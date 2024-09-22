@@ -9,11 +9,11 @@ class Setversion : Function<Map<String, String>, Any> {
             val name = form["version"]!!
             Config.ClientVersion.set(name.toInt())
             Config.save()
-            "{\"result\": true}"
+            gson.toJson(mapOf("result" to true))
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

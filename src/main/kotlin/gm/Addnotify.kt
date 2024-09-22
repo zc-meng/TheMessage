@@ -9,11 +9,11 @@ class Addnotify : Function<Map<String, String>, Any> {
             val qq = form["qq"]!!.toLong()
             val onStart = (form["when"]?.toInt() ?: 0) == 0
             val result = QQPusher.addIntoNotifyQueue(qq, onStart)
-            "{\"result\": $result}"
+            gson.toJson(mapOf("result" to result))
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

@@ -15,7 +15,7 @@ class Addcard : Function<Map<String, String>, Any> {
             val playerId = form["player"]?.toInt() ?: 0
             val cardTypeNum = form["card"]!!.toInt()
             val cardType = card_type.forNumber(cardTypeNum)
-            if (cardType == null || cardType == UNRECOGNIZED) return "{\"error\": \"参数错误\"}"
+            if (cardType == null || cardType == UNRECOGNIZED) return gson.toJson(mapOf("error" to "参数错误"))
             val count = form["count"]
             val finalCount = count?.toInt()?.coerceIn(1..99) ?: 1
             val availableCards = Deck.DefaultDeck.filter { it.type == cardType }
@@ -57,11 +57,11 @@ class Addcard : Function<Map<String, String>, Any> {
                     }
                 }
             }
-            "{\"msg\": \"成功\"}"
+            gson.toJson(mapOf("msg" to "成功"))
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

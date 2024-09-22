@@ -8,18 +8,18 @@ class Addenergy : Function<Map<String, String>, Any> {
         return try {
             val name = form["name"]!!
             val energy = form["energy"]!!.toInt()
-            val playerInfo = Statistics.getPlayerInfo(name) ?: return "{\"error\": \"玩家不存在\"}"
+            val playerInfo = Statistics.getPlayerInfo(name) ?: return gson.toJson(mapOf("error" to "玩家不存在"))
             val forbidLeft = playerInfo.forbidUntil - System.currentTimeMillis()
             if (forbidLeft > 0) {
-                "{\"result\": false}"
+                gson.toJson(mapOf("result" to false))
             } else {
                 val result = Statistics.addEnergy(name, energy, true)
-                "{\"result\": $result}"
+                gson.toJson(mapOf("result" to result))
             }
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

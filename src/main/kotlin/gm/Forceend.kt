@@ -13,9 +13,9 @@ class Forceend : Function<Map<String, String>, Any> {
                         it.end(null, null, true)
                 }
             }
-            "{\"result\": true}"
+            gson.toJson(mapOf("result" to true))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }
