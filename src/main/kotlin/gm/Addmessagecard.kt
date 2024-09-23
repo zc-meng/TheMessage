@@ -22,11 +22,11 @@ class Addmessagecard : Function<Map<String, String>, Any> {
             val colorNumlist = form["colors"]!!.split(',')
             val colorNumber = colorNumlist.map { it.toInt() }
             val colors: List<color> = colorNumber.map { color.forNumber(it) }
-            if (cardType == null || cardType == UNRECOGNIZED) return "{\"error\": \"参数错误\"}"
+            if (cardType == null || cardType == UNRECOGNIZED) return gson.toJson(mapOf("error" to "参数错误"))
             val count = form["count"]
             val finalCount = count?.toInt()?.coerceIn(1..99) ?: 1
             val availableCards = Deck.DefaultDeck.filter { card -> card.type == cardType && colors.all { it in card.colors } }
-            if (availableCards.isEmpty()) return "{\"error\": \"牌堆没有该颜色卡牌\"}"
+            if (availableCards.isEmpty()) return gson.toJson(mapOf("error" to "牌堆没有该颜色卡牌"))
             for (g in Game.gameCache.values) {
                 GameExecutor.post(g) {
                     if (!g.isStarted || g.fsm == null || g.fsm is WaitForSelectRole) return@post
@@ -66,11 +66,11 @@ class Addmessagecard : Function<Map<String, String>, Any> {
                     }
                 }
             }
-            "{\"msg\": \"成功\"}"
+            gson.toJson(mapOf("msg" to "成功"))
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

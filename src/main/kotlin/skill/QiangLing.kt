@@ -1,11 +1,13 @@
 package com.fengsheng.skill
 
 import com.fengsheng.*
+import com.fengsheng.protos.Common.card_type
 import com.fengsheng.protos.Common.card_type.*
 import com.fengsheng.protos.Role.skill_qiang_ling_tos
 import com.fengsheng.protos.skillQiangLingToc
 import com.fengsheng.protos.skillQiangLingTos
 import com.fengsheng.protos.skillWaitForQiangLingToc
+import com.fengsheng.skill.BianZeTong.BianZeTong2
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
@@ -61,11 +63,13 @@ class QiangLing : TriggeredSkill {
                             return@post
                         }
                     }
+                    fun cannotPlayCard(cardType: card_type): Boolean =
+                        r.cannotPlayCard(cardType) || r.skills.any { it is BianZeTong2 && it.cardTypeA == cardType }
                     val result = listOf(Jie_Huo, Diao_Bao, Wu_Dao)
-                        .filterNot { r.cannotPlayCard(it) }.run {
+                        .filterNot { cannotPlayCard(it) }.run {
                             when (size) {
-                                0 -> listOf(Po_Yi, Cheng_Qing).filterNot { r.cannotPlayCard(it) }
-                                1 -> plus(if (event is SendCardEvent && !r.cannotPlayCard(Po_Yi)) Po_Yi else Cheng_Qing)
+                                0 -> listOf(Po_Yi, Cheng_Qing).filterNot { cannotPlayCard(it) }
+                                1 -> plus(if (event is SendCardEvent && !cannotPlayCard(Po_Yi)) Po_Yi else Cheng_Qing)
                                 2 -> this
                                 else -> sortedBy { type -> r.cards.any { it.type == type } }.take(2)
                             }

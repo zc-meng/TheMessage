@@ -19,17 +19,23 @@ import kotlin.math.round
 object ScoreFactory : Logging {
     private val rankString = listOf("I", "II", "III", "IV", "V")
 
-    fun getRankNameByScore(score: Int): String {
-        return when {
-            score < 60 -> "\uD83E\uDD49" + rankString[2 - score / 20]
-            score < 240 -> "\uD83E\uDD48" + rankString[2 - (score - 60) / 60]
-            score < 360 -> "\uD83E\uDD47" + rankString[4 - (score - 240) / 60]
-            score < 600 -> "\uD83E\uDD47" + rankString[2 - (score - 360) / 80]
-            score < 1000 -> "\uD83D\uDC8D" + rankString[4 - (score - 600) / 80]
-            score < 1500 -> "\uD83D\uDCA0" + rankString[4 - (score - 1000) / 100]
-            score < 2000 -> "\uD83D\uDC51" + rankString[4 - (score - 1500) / 100]
-            else -> "\uD83D\uDC51" + rankString[0]
-        }
+    fun getRankNameByScore(score: Int): String = when {
+        score < 60 -> "\uD83E\uDD49" + rankString[2 - score / 20]
+        score < 240 -> "\uD83E\uDD48" + rankString[2 - (score - 60) / 60]
+        score < 360 -> "\uD83E\uDD47" + rankString[4 - (score - 240) / 60]
+        score < 600 -> "\uD83E\uDD47" + rankString[2 - (score - 360) / 80]
+        score < 1000 -> "\uD83D\uDC8D" + rankString[4 - (score - 600) / 80]
+        score < 1500 -> "\uD83D\uDCA0" + rankString[4 - (score - 1000) / 100]
+        score < 2000 -> "\uD83D\uDC51" + rankString[4 - (score - 1500) / 100]
+        else -> "\uD83D\uDC51" + rankString[0]
+    }
+
+    fun getSeasonTitleByScore(score: Int): String = when {
+        score >= 1900 -> "\uD83D\uDC51"
+        score >= 1400 -> "\uD83D\uDCA0"
+        score >= 920 -> "\uD83D\uDC8D"
+        score >= 520 -> "\uD83E\uDD47"
+        else -> ""
     }
 
     fun getRankStringNameByScore(score: Int): String {
@@ -202,4 +208,45 @@ object ScoreFactory : Logging {
     }
 
     private val playerCountCount = ConcurrentHashMap<Int, MutableList<PlayerGameCount>>()
+
+    /**
+     * 获取所有角色的胜率
+     */
+    fun getAllWinRate(): Double {
+        var winCount = 0
+        var gameCount = 0
+        playerCountCount.forEach { (_, list) ->
+            winCount += list[0].winCount
+            gameCount += list[0].gameCount
+        }
+        return PlayerGameCount(winCount, gameCount).rate
+    }
+
+    /**
+     * 获取军潜的胜率
+     */
+    fun getRBWinRate(): Double {
+        var winCount = 0
+        var gameCount = 0
+        playerCountCount.forEach { (_, list) ->
+            winCount += list[1].winCount
+            gameCount += list[1].gameCount
+        }
+        return PlayerGameCount(winCount, gameCount).rate
+    }
+
+    /**
+     * 获取神秘人的胜率
+     *
+     * @param secretTask 神秘人的任务，传空表示获取所有神秘人的胜率
+     */
+    fun getBlackWinRate(secretTask: secret_task? = null): Double {
+        var winCount = 0
+        var gameCount = 0
+        playerCountCount.forEach { (_, list) ->
+            winCount += list[3 + (secretTask?.number ?: -1)].winCount
+            gameCount += list[3 + (secretTask?.number ?: -1)].gameCount
+        }
+        return PlayerGameCount(winCount, gameCount).rate
+    }
 }

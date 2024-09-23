@@ -7,18 +7,18 @@ class Register : Function<Map<String, String>, Any> {
     override fun apply(form: Map<String, String>): Any {
         return try {
             val name = form["name"]!!
-            if (name.length > 12) return "{\"error\": \"名字太长\"}"
-            if (invalidString.any { it in name }) return "{\"error\": \"名字中含有非法字符\"}"
-            if ("名字" in name) return "{\"error\": \"不能含有“名字”二字\"}"
+            if (name.length > 12) return gson.toJson(mapOf("error" to "名字太长"))
+            if (invalidString.any { it in name }) return gson.toJson(mapOf("error" to "名字中含有非法字符"))
+            if ("名字" in name) return gson.toJson(mapOf("error" to "不能含有“名字”二字"))
             val result = Statistics.register(name)
             Statistics.setTrialStartTime(name, System.currentTimeMillis())
-            "{\"result\": $result}"
+            gson.toJson(mapOf("result" to result))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 
     companion object {
-        private val invalidString = listOf(",", "·", "{", "$", "}")
+        private val invalidString = listOf(",", "·", "{", "$", "}", " ", "\t", "\n", "\r")
     }
 }

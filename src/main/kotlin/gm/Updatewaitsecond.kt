@@ -8,16 +8,16 @@ class Updatewaitsecond : Function<Map<String, String>, Any> {
         return try {
             val second = form["second"]!!.toInt()
             if (second <= 0) {
-                "{\"result\": false}"
+                gson.toJson(mapOf("result" to false))
             } else {
                 Config.WaitingSecond.set(second)
                 Config.save()
-                "{\"result\": true}"
+                gson.toJson(mapOf("result" to true))
             }
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

@@ -222,6 +222,18 @@ fun Player.calculateMessageCardValue(
             override fun canUse(g: Game, r: Player, vararg args: Any) = false
             override fun execute(g: Game, r: Player, vararg args: Any) = Unit
         }
+        fun merge(a: Int, b: Int): Int = if (a == 600 || b == 600) 600 // 其中一个已经赢了，就是赢了，以防共赢的情况下还非要出牌拦敌方
+        else a + b
+        if (colors.size == 2 && inFrontOfWhom.skills.any { it is JinShen }) { // 金生火
+            var valueInFrontOfWhom = 0
+            for (c in inFrontOfWhom.cards.toList()) {
+                val v = inFrontOfWhom.calculateMessageCardValue(whoseTurn, inFrontOfWhom, c.colors, checkThreeSame)
+                if (v > valueInFrontOfWhom) {
+                    valueInFrontOfWhom = v
+                    v1 = calculateMessageCardValue(whoseTurn, inFrontOfWhom, c.colors, checkThreeSame)
+                }
+            }
+        }
         if (sender.skills.any { it is MianLiCangZhen }) { // 邵秀
             inFrontOfWhom.messageCards.add(TmpCard(colors))
             var valueSender = -1
@@ -234,7 +246,24 @@ fun Player.calculateMessageCardValue(
                 }
             }
             logger.debug("这是[邵秀]传出的情报，计算[绵里藏针]额外分数为$valueMe")
-            v1 += valueMe
+            v1 = merge(v1, valueMe)
+            inFrontOfWhom.messageCards.removeLast()
+        }
+        if (Black in colors && inFrontOfWhom.skills.any { it is YiYaHuanYa }) { // 王魁
+            inFrontOfWhom.messageCards.add(TmpCard(colors))
+            var valueInFrontOfWhom = -1
+            var valueMe = 0
+            for (c in inFrontOfWhom.cards.filter(Card::isBlack)) {
+                for (p in listOf(sender, sender.getNextLeftAlivePlayer(), sender.getNextRightAlivePlayer())) {
+                    val v = inFrontOfWhom.calculateMessageCardValue(whoseTurn, p, c.colors, checkThreeSame)
+                    if (v > valueInFrontOfWhom) {
+                        valueInFrontOfWhom = v
+                        valueMe = calculateMessageCardValue(whoseTurn, p, c.colors, checkThreeSame)
+                    }
+                }
+            }
+            v1 = merge(v1, valueMe)
+            logger.debug("这是[王魁]传出的情报，计算[以牙还牙]额外分数为$valueMe")
             inFrontOfWhom.messageCards.removeLast()
         }
         if (Black !in colors && sender.skills.any { it is ChiZiZhiXin } && sender !== inFrontOfWhom) { // 青年小九
@@ -249,11 +278,11 @@ fun Player.calculateMessageCardValue(
                 }
             }
             logger.debug("这是[SP小九]传出的情报，计算[赤子之心]额外分数为$valueMe")
-            v1 += when {
+            v1 = merge(v1, when {
                 valueSender > 30 -> valueMe
                 isPartnerOrSelf(sender) -> 20
                 else -> -20
-            }
+            })
             inFrontOfWhom.messageCards.removeLast()
         }
         // TODO CP韩梅还要判断一下拿牌，这里就暂时先不写了
@@ -264,15 +293,61 @@ fun Player.calculateMessageCardValue(
                 var valueMe = 0
                 if (v > 0) valueMe = calculateMessageCardValue(whoseTurn, inFrontOfWhom, listOf(Black))
                 logger.debug("这是[CP韩梅]传出的情报，计算[暗藏杀机]额外分数为$valueMe")
-                v1 += valueMe
+                v1 = merge(v1, valueMe)
             }
             inFrontOfWhom.messageCards.removeLast()
         }
+        fun addScore(p: Player, score: Int) {
+            if (p.identity != Black) { // 军潜：己方加分，敌方减分，神秘人不管
+                if (identity == p.identity) v1 = merge(v1, score)
+                if (identity != p.identity && identity != Black) v1 = merge(v1, -score)
+            } else if (p === this) { // 神秘人：自己加分，其他人不管
+                v1 = merge(v1, score)
+            }
+        }
         if (Black in colors && inFrontOfWhom.skills.any { it is ShiSi }) { // 老汉【视死】
-            if (isPartnerOrSelf(inFrontOfWhom)) {
-                v1 += 20
-            } else if (inFrontOfWhom.identity != Black && identity != Black) { // 自己是神秘人就无视，老汉是神秘人也无视
-                v1 -= 20
+            addScore(inFrontOfWhom, 20)
+        }
+        if (inFrontOfWhom.skills.any { it is ZhiYin }) { // 程小蝶【知音】【惊梦】
+            if (Black in colors) { // 惊梦
+                addScore(inFrontOfWhom, 10)
+            }
+            if (colors.any { it != Black }) { // 知音
+                addScore(inFrontOfWhom, 10)
+                addScore(sender, 10)
+            }
+        }
+        if (inFrontOfWhom.skills.any { it is MingEr }) { // 老鳖【明饵】
+            if (colors.any { it != Black }) {
+                addScore(sender, 10)
+                addScore(inFrontOfWhom, 10)
+            }
+        }
+        if (sender !== inFrontOfWhom && sender.roleFaceUp && sender.skills.any { it is ZhenLi }) {
+            // 李书云【真理】
+            if (colors.any { it != Black }) {
+                addScore(sender, 20)
+            }
+        }
+        if (sender !== inFrontOfWhom && sender.skills.any { it is HanHouLaoShi }) {
+            // 哑炮【憨厚老实】
+            if (sender.cards.isNotEmpty()) {
+                addScore(sender, -10)
+                addScore(inFrontOfWhom, 10)
+            }
+        }
+        if (colors.any { it != Black } && inFrontOfWhom.skills.any { it is WorkersAreKnowledgable }) {
+            // 王响【咱们工人有知识】
+            addScore(inFrontOfWhom, 9)
+        }
+        if (Black !in colors && inFrontOfWhom.skills.any { it is ZhuanJiao || it is JiSong }) {
+            // 白小年【转交】、鬼脚【急送】
+            addScore(inFrontOfWhom, 11)
+        }
+        if (sender.skills.any { it is CangShenJiaoTang }) {
+            // 玛利亚【藏身教堂】
+            if (sender.isPartnerOrSelf(inFrontOfWhom) && !inFrontOfWhom.isPublicRole && inFrontOfWhom.roleFaceUp) {
+                addScore(inFrontOfWhom, 80)
             }
         }
         if (Black in colors && inFrontOfWhom.roleFaceUp &&
@@ -290,7 +365,7 @@ fun Player.calculateMessageCardValue(
                     }
                 }
             }
-            v1 += myValue
+            v1 = merge(v1, myValue)
         }
         if (Black in colors && inFrontOfWhom.skills.any { it is RuGui } && inFrontOfWhom.messageCards.count(Black) == 2) {
             // 老汉【如归】
@@ -304,10 +379,12 @@ fun Player.calculateMessageCardValue(
                         myValue = calculateMessageCardValue(whoseTurn, whoseTurn, mCard)
                     }
                 }
-                v1 += myValue
+                v1 = merge(v1, myValue)
             }
         }
     }
+    if (v1 > 460) v1 = 600
+    else if (v1 < -460) v1 = -600
     return v1
 }
 
@@ -412,7 +489,7 @@ fun Player.calculateMessageCardValue(
                 value -= when (inFrontOfWhom.messageCards.count(Black)) {
                     0 -> 1
                     1 -> 11
-                    else -> if (checkThreeSame) return 10 else 111
+                    else -> if (checkThreeSame) return 10 else 112
                 }
             }
         } else {
@@ -442,7 +519,7 @@ fun Player.calculateMessageCardValue(
                 value -= when (inFrontOfWhom.messageCards.count(Black)) {
                     0 -> 1
                     1 -> 11
-                    else -> if (checkThreeSame) return 10 else 111
+                    else -> if (checkThreeSame) return 10 else 112
                 }
             }
         } else if (inFrontOfWhom.identity == enemyColor) { // 敌人
@@ -457,7 +534,7 @@ fun Player.calculateMessageCardValue(
                 value += when (inFrontOfWhom.messageCards.count(Black)) {
                     0 -> 1
                     1 -> 11
-                    else -> if (checkThreeSame) return 10 else 111
+                    else -> if (checkThreeSame) return 10 else 112
                 }
             }
         }

@@ -8,9 +8,9 @@ class Releaserole : Function<Map<String, String>, Any> {
         return try {
             val name = form["name"]!!
             val result = RoleCache.releaseRole(name)
-            "{\"result\": $result}"
+            gson.toJson(mapOf("result" to result))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

@@ -5,8 +5,6 @@ import com.fengsheng.Game
 import com.fengsheng.GameExecutor
 import com.fengsheng.HumanPlayer
 import com.fengsheng.protos.Common
-import com.google.gson.FieldNamingPolicy
-import com.google.gson.GsonBuilder
 import java.util.function.Function
 
 class Getallgames : Function<Map<String, String>, Any> {
@@ -58,8 +56,4 @@ class Getallgames : Function<Map<String, String>, Any> {
         val players: List<PlayerData>,
         val playTime: Long
     )
-
-    companion object {
-        private val gson = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()
-    }
 }

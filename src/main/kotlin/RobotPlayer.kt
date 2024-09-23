@@ -8,6 +8,7 @@ import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
 import com.fengsheng.protos.Common.direction.Left
 import com.fengsheng.protos.Common.direction.Right
+import com.fengsheng.protos.Common.role.zhang_yi_ting
 import com.fengsheng.protos.Common.secret_task.*
 import com.fengsheng.protos.endReceivePhaseTos
 import com.fengsheng.protos.notifyDieGiveCardToc
@@ -148,7 +149,10 @@ class RobotPlayer : Player() {
                     // 下家看自己的收益或我看自己的收益大于等于0时，才考虑比较双方收益，如果都小于0就不接
                     if (myValue >= 0 || nextNextValue >= 0) {
                         if (myValue > myNextValue) return@run true // 自己比下家收益高就接
-                        if (myValue == myNextValue && myValue >= 0) return@run true // 相等的情况下，收益不为负就接
+                        if (myValue == myNextValue && myValue >= 0) {
+                            // 相等的情况下，下家和自己是队友，且下家是张一挺就不接，否则接
+                            return@run !(isPartner(nextPlayer) && nextPlayer.role == zhang_yi_ting)
+                        }
                     }
                     val lockPlayer = fsm.lockedPlayers.ifEmpty { listOf(fsm.sender) }.first()
                     if (isPartner(lockPlayer)) { // 场上有被锁的队友
@@ -210,7 +214,7 @@ class RobotPlayer : Player() {
             fsm.inFrontOfWhom.willDie(fsm.messageCard) ||
             calculateMessageCardValue(fsm.whoseTurn, fsm.inFrontOfWhom, fsm.messageCard, sender = fsm.sender) <= -110) {
             val result = calFightPhase(fsm)
-            if (result != null && result.deltaValue > 10) {
+            if (result != null && result.deltaValue > 11) {
                 var actualDelay = 3L
                 var timeUnit = TimeUnit.SECONDS
                 if (delay > 0) {

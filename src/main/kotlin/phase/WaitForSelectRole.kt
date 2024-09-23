@@ -1,11 +1,15 @@
 package com.fengsheng.phase
 
 import com.fengsheng.*
-import com.fengsheng.protos.*
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.Common.secret_task.Collector
+import com.fengsheng.protos.Common.secret_task.Disturber
 import com.fengsheng.protos.Fengsheng.select_role_tos
+import com.fengsheng.protos.gameStartToc
+import com.fengsheng.protos.selectRoleToc
+import com.fengsheng.protos.selectRoleTos
+import com.fengsheng.protos.waitForSelectRoleToc
 import com.fengsheng.skill.RoleCache
 import com.fengsheng.skill.RoleSkillsData
 import com.google.protobuf.GeneratedMessage
@@ -41,8 +45,12 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
                     val aiPreferRole = aiPreferRole.toMutableSet()
                     if (player.identity == Black) {
                         aiPreferRole -= sp_gu_xiao_meng
+                        aiPreferRole -= bai_cang_lang
                         if (player.secretTask == Collector) {
                             aiPreferRole -= bai_xiao_nian
+                        }
+                        if (player.secretTask == Disturber) {
+                            aiPreferRole -= huo_che_si_ji
                         }
                     }
                     filter { it.role in aiPreferRole }.ifEmpty {
@@ -127,7 +135,6 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
             li_ning_yu,
             cheng_xiao_die,
             bai_xiao_nian,
-            shang_yu,
             li_xing,
             pei_ling,
             xuan_qing_zi,

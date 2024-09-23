@@ -6,6 +6,6 @@ import java.util.function.Function
 class Resetseason : Function<Map<String, String>, Any> {
     override fun apply(form: Map<String, String>): Any {
         Statistics.resetSeason()
-        return "{\"result\": \"重置成功\"}"
+        return gson.toJson(mapOf("result" to "重置成功"))
     }
 }

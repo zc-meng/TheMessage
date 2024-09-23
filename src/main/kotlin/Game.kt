@@ -238,12 +238,13 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 for (p in humanPlayers) {
                     if (humanPlayers.size <= 1) Statistics.addEnergy(p.playerName, -1)
                     else Statistics.addEnergy(p.playerName, humanPlayers.size * 2)
-                    playerGameResultList.add(PlayerGameResult(p.playerName, winners.any { it === p }))
+                    playerGameResultList.add(PlayerGameResult(p.playerName, winners.any { it === p },
+                        p.originIdentity, p.originSecretTask))
                 }
                 Statistics.addPlayerGameCount(playerGameResultList)
                 Statistics.calculateRankList()
-                if (humanPlayers.size > 1)
-                    QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap)
+                QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap, humanPlayers.size > 1 ||
+                    humanPlayers[0].playerName == "半藏")
             }
             players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
         }

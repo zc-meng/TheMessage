@@ -21,11 +21,11 @@ class Addrobot : Function<Map<String, String>, Any> {
                     }
                 }
             }
-            "{\"msg\": \"success\"}"
+            gson.toJson(mapOf("msg" to "success"))
         } catch (e: NumberFormatException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.fengsheng
 
 import com.fengsheng.skill.RoleCache
+import com.fengsheng.util.FileUtil
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -14,6 +15,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.logging.log4j.kotlin.logger
+import java.io.File
+import java.io.FileNotFoundException
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicLong
 
@@ -69,10 +72,12 @@ object QQPusher {
         declareWinners: List<Player>,
         winners: List<Player>,
         addScoreMap: HashMap<String, Int>,
-        newScoreMap: HashMap<String, Int>
+        newScoreMap: HashMap<String, Int>,
+        pushToQQ: Boolean,
     ) {
         if (!Config.EnablePush) return
         val lines = ArrayList<String>()
+        val map = HashMap<String, String>()
         lines.add("对局结果")
         for (player in game.players.sortedBy { it!!.identity.number }) {
             val name = player!!.playerName
@@ -97,8 +102,9 @@ object QQPusher {
                 else "+0"
             val rank = ScoreFactory.getRankNameByScore(newScore)
             lines.add("$name,$roleName,$identity,$result,$rank,$newScore($addScoreStr)")
+            map[name] = "$roleName,$identity,$result,$rank,$newScore($addScoreStr)"
         }
-        val text = lines.joinToString(separator = "\\n")
+        val text = lines.joinToString(separator = "\n")
         val at = runBlocking {
             mu.withLock {
                 notifyQueueOnEnd.toLongArray().apply { notifyQueueOnEnd.clear() }
@@ -107,21 +113,44 @@ object QQPusher {
         @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.launch {
             try {
-                Config.PushQQGroups.forEach { sendGroupMessage(it, text, false, *at) }
+                if (pushToQQ)
+                    Config.PushQQGroups.forEach { sendGroupMessage(it, text, false, *at) }
+                File("history").mkdirs()
+                map.forEach(::addHistory)
             } catch (e: Throwable) {
                 logger.error("catch throwable", e)
             }
         }
     }
 
+    private fun addHistory(name: String, s: String) {
+        var list = try {
+            FileUtil.readLines("history/$name.csv", Charsets.UTF_8)
+        } catch (e: FileNotFoundException) {
+            ArrayList<String>()
+        }
+        list.add(s)
+        if (list.size > 10)
+            list = list.subList(list.size - 10, list.size)
+        FileUtil.writeLines(list, "history/$name.csv", Charsets.UTF_8)
+    }
+
+    fun getHistory(name: String): List<String> = try {
+        FileUtil.readLines("history/$name.csv", Charsets.UTF_8)
+    } catch (e: Throwable) {
+        if (e !is FileNotFoundException)
+            logger.error("catch throwable", e)
+        emptyList()
+    }
+
     private fun sendGroupMessage(groupId: Long, message: String, atAll: Boolean, vararg at: Long) {
-        val atStr =
-            if (atAll) "{\"type\":\"at\",\"data\":{\"qq\":\"all\"}},"
-            else at.joinToString(separator = "") { "{\"type\":\"at\",\"data\":{\"qq\":\"$it\"}}," }
-        val postData = """{
-            "group_id":$groupId,
-            "message":[$atStr{"type":"text","data":{"text":"$message"}}]
-        }""".trimMargin().toRequestBody(contentType)
+        val atMsg =
+            if (atAll) listOf(mapOf("type" to "at", "data" to mapOf("qq" to "all")))
+            else at.map { mapOf("type" to "at", "data" to mapOf("qq" to "$it")) }
+        val postData = gson.toJson(mapOf(
+            "group_id" to groupId,
+            "message" to atMsg + mapOf("type" to "text", "data" to mapOf("text" to message))
+        )).toRequestBody(contentType)
         val request = Request.Builder()
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer ${Config.MiraiVerifyKey}")

@@ -9,9 +9,9 @@ class Setnotice : Function<Map<String, String>, Any> {
             val notice = form["notice"]!!
             Config.Notice.set(notice)
             Config.save()
-            "{\"result\": true}"
+            gson.toJson(mapOf("result" to true))
         } catch (e: NullPointerException) {
-            "{\"error\": \"参数错误\"}"
+            gson.toJson(mapOf("error" to "参数错误"))
         }
     }
 }
