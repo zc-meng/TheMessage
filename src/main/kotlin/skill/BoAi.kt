@@ -136,6 +136,7 @@ class BoAi : MainPhaseSkill() {
             }
             r.incrSeq()
             logger.info("${r}将${card}交给$target")
+            r.canWeiBiCardIds.add(card.id)
             r.deleteCard(card.id)
             target.cards.add(card)
             g.players.send {

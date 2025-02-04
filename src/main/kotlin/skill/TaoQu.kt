@@ -83,6 +83,9 @@ class TaoQu : MainPhaseSkill() {
         r.incrSeq()
         r.addSkillUseCount(skillId)
         logger.info("${r}发动了[套取]，展示了${cards.joinToString()}")
+        cards.forEach { c ->
+            g.players.forEach { it!!.canWeiBiCardIds.add(c.id) }
+        }
         g.resolve(ExecuteTaoQu(fsm, r, cards, colors))
     }
 

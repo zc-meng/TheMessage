@@ -58,6 +58,7 @@ class DingLun : ActiveSkill {
         }
         if (joinIntoHand) {
             logger.info("${r}将${fsm.messageCard}加入了手牌")
+            g.players.forEach { it!!.canWeiBiCardIds.add(fsm.messageCard.id) }
             r.cards.add(fsm.messageCard)
             g.resolve(NextTurn(fsm.whoseTurn))
         } else g.resolve(OnReceiveCard(fsm.whoseTurn, fsm.sender, fsm.messageCard, r))

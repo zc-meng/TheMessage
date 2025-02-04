@@ -68,7 +68,7 @@ class JoinRoomTos : ProtoHandler {
             player.sendErrorMessage("房间已满，请稍后再试")
             return
         }
-        val newGame = GameExecutor.getGame(pb.roomId, pb.playerCount)
+        val newGame = GameExecutor.getGame(0, pb.playerCount)
         GameExecutor.post(newGame) {
             if (newGame.isStarted) {
                 player.sendErrorMessage("游戏已经开始，无法进入")

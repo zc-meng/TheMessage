@@ -5,7 +5,6 @@ import com.fengsheng.ScoreFactory.logger
 import com.fengsheng.card.Card
 import com.fengsheng.card.count
 import com.fengsheng.card.countTrueCard
-import com.fengsheng.card.filter
 import com.fengsheng.phase.FightPhaseIdle
 import com.fengsheng.protos.Common.*
 import com.fengsheng.protos.Common.card_type.*
@@ -14,6 +13,7 @@ import com.fengsheng.protos.Common.direction.*
 import com.fengsheng.protos.Common.secret_task.*
 import com.fengsheng.skill.*
 import com.fengsheng.skill.LengXueXunLian.MustLockOne
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 /**
@@ -91,67 +91,75 @@ fun Player.willWin(whoseTurn: Player, inFrontOfWhom: Player, colors: List<color>
 
 /**
  * 判断玩家是否赢了，不考虑簒夺者
+ *
+ * @param checkAllSecretTask 是否判断所有神秘人的任务
  */
 private fun Player.willWinInternal(
     whoseTurn: Player,
     inFrontOfWhom: Player,
     colors: List<color>,
-    partnerTogether: Boolean = true
+    partnerTogether: Boolean = true,
+    checkAllSecretTask: Boolean = false,
 ): Boolean {
     if (!alive) return false
     if (identity != Black) {
         return (if (partnerTogether) isPartnerOrSelf(inFrontOfWhom) else this === inFrontOfWhom) &&
             identity in colors && inFrontOfWhom.messageCards.count(identity) >= 2
     } else {
-        return when (secretTask) {
-            Killer, Pioneer, Sweeper -> {
-                if (game!!.players.any {
-                        (it!!.identity != Black || it.secretTask in listOf(Collector, Mutator)) &&
-                            it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
-                    }) {
-                    return false
+        fun checkSecretTask(secretTask: secret_task): Boolean {
+            return when (secretTask) {
+                Killer, Pioneer, Sweeper -> {
+                    if (game!!.players.any {
+                            (it!!.identity != Black || it.secretTask in listOf(Collector, Mutator)) &&
+                                it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
+                        }) {
+                        return false
+                    }
+                    val counts = CountColors(inFrontOfWhom.messageCards)
+                    counts += colors
+                    counts.black >= 3 || return false
+                    when (secretTask) {
+                        Killer -> this === whoseTurn && counts.trueCard >= 2
+                        Pioneer -> this === inFrontOfWhom && counts.trueCard >= 1
+                        Sweeper -> counts.red <= 1 && counts.blue <= 1
+                        else -> false
+                    }
                 }
-                val counts = CountColors(inFrontOfWhom.messageCards)
-                counts += colors
-                counts.black >= 3 || return false
-                when (secretTask) {
-                    Killer -> this === whoseTurn && counts.trueCard >= 2
-                    Pioneer -> this === inFrontOfWhom && counts.trueCard >= 1
-                    Sweeper -> counts.red <= 1 && counts.blue <= 1
-                    else -> false
+
+                Collector ->
+                    this === inFrontOfWhom &&
+                        if (Red in colors) messageCards.count(Red) >= 2
+                        else if (Blue in colors) messageCards.count(Blue) >= 2
+                        else false
+
+                Mutator -> {
+                    if (inFrontOfWhom.let {
+                            (it.identity != Black || it.secretTask == Collector) &&
+                                it.willWinInternal(whoseTurn, it, colors)
+                        }) {
+                        return false
+                    }
+                    if (Red in colors && inFrontOfWhom.messageCards.count(Red) >= 2) return true
+                    if (Blue in colors && inFrontOfWhom.messageCards.count(Blue) >= 2) return true
+                    false
                 }
+
+                Disturber ->
+                    if (Red in colors || Blue in colors)
+                        game!!.players.all {
+                            it === this || it === inFrontOfWhom || !it!!.alive ||
+                                it.messageCards.countTrueCard() >= 2
+                        } &&
+                            inFrontOfWhom.messageCards.countTrueCard() >= 1
+                    else
+                        game!!.players.all { it === this || !it!!.alive || it.messageCards.countTrueCard() >= 2 }
+
+                else -> false
             }
-
-            Collector ->
-                this === inFrontOfWhom &&
-                    if (Red in colors) messageCards.count(Red) >= 2
-                    else if (Blue in colors) messageCards.count(Blue) >= 2
-                    else false
-
-            Mutator -> {
-                if (inFrontOfWhom.let {
-                        (it.identity != Black || it.secretTask == Collector) &&
-                            it.willWinInternal(whoseTurn, it, colors)
-                    }) {
-                    return false
-                }
-                if (Red in colors && inFrontOfWhom.messageCards.count(Red) >= 2) return true
-                if (Blue in colors && inFrontOfWhom.messageCards.count(Blue) >= 2) return true
-                false
-            }
-
-            Disturber ->
-                if (Red in colors || Blue in colors)
-                    game!!.players.all {
-                        it === this || it === inFrontOfWhom || !it!!.alive ||
-                            it.messageCards.countTrueCard() >= 2
-                    } &&
-                        inFrontOfWhom.messageCards.countTrueCard() >= 1
-                else
-                    game!!.players.all { it === this || !it!!.alive || it.messageCards.countTrueCard() >= 2 }
-
-            else -> false
         }
+        if (checkAllSecretTask && game!!.possibleSecretTasks.isNotEmpty())
+            return game!!.possibleSecretTasks.any { checkSecretTask(it) }
+        return checkSecretTask(secretTask)
     }
 }
 
@@ -317,7 +325,7 @@ fun Player.calculateMessageCardValue(
                 addScore(sender, 10)
             }
         }
-        if (inFrontOfWhom.skills.any { it is MingEr }) { // 老鳖【明饵】
+        if (sender.skills.any { it is MingEr }) { // 老鳖【明饵】
             if (colors.any { it != Black }) {
                 addScore(sender, 10)
                 addScore(inFrontOfWhom, 10)
@@ -349,6 +357,11 @@ fun Player.calculateMessageCardValue(
             if (sender.isPartnerOrSelf(inFrontOfWhom) && !inFrontOfWhom.isPublicRole && inFrontOfWhom.roleFaceUp) {
                 addScore(inFrontOfWhom, 80)
             }
+        }
+        if (!inFrontOfWhom.roleFaceUp && (inFrontOfWhom.hasEverFaceUp || inFrontOfWhom === this) &&
+            inFrontOfWhom !== sender && inFrontOfWhom.skills.any { it is LianXin }) {
+            // 成年小九、成年韩梅【暗度陈仓】
+            addScore(inFrontOfWhom, if (sender.isPartner(inFrontOfWhom)) 20 else 10)
         }
         if (Black in colors && inFrontOfWhom.roleFaceUp &&
             inFrontOfWhom.skills.any { it is YiXin } && inFrontOfWhom.messageCards.count(Black) == 2) {
@@ -383,6 +396,9 @@ fun Player.calculateMessageCardValue(
             }
         }
     }
+    if (v1 > 460) v1 = 600
+    else if (v1 < -460) v1 = -600
+    v1 = (v1 * coefficientA + coefficientB).roundToInt()
     if (v1 > 460) v1 = 600
     else if (v1 < -460) v1 = -600
     return v1
@@ -423,12 +439,14 @@ fun Player.calculateMessageCardValue(
                             it.willWinInternal(whoseTurn, inFrontOfWhom, colors, false)
                     }) return -600
             } else if (identity == Black) { // 秦圆圆的回合，神秘人没关系，反正没有队友
-                if (game!!.players.any {
+                if (!(this === inFrontOfWhom && willDie(colors)) && game!!.players.any {
                         it !== disturber && !isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
                     }) return 600
+                val coefficient = if (coefficientA >= 1) coefficientA - 0.2 else coefficientA
                 if (game!!.players.any {
-                        it !== disturber && isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors)
-                    }) return -600
+                        it !== disturber && isEnemy(it!!) && it.willWinInternal(whoseTurn, inFrontOfWhom, colors,
+                            checkAllSecretTask = coefficientA >= 1) // 激进型需要判断所有神秘人任务
+                    }) return if (Random.nextDouble() < coefficient) -600 else 0 // 根据打牌风格，有80%到100%几率管
             } else if (inFrontOfWhom.identity in colors && inFrontOfWhom.messageCards.count(inFrontOfWhom.identity) >= 2) {
                 return if (inFrontOfWhom === this || isPartner(inFrontOfWhom) &&
                     (!inFrontOfWhom.isMale || isPartnerOrSelf(whoseTurn))
@@ -480,7 +498,7 @@ fun Player.calculateMessageCardValue(
         if (secretTask == Disturber && this != inFrontOfWhom) {
             val count = inFrontOfWhom.messageCards.countTrueCard()
             if (inFrontOfWhom.willDie(colors))
-                value += (2 - count) * 5
+                value += ((2 - count) * 5).coerceAtLeast(0)
             else if (count < 2 && (Red in colors || Blue in colors))
                 value += 5
         }
@@ -591,7 +609,8 @@ fun Player.calSendMessageCard(
             if (canLock && nextValue >= myValue) return nextValue.toDouble()
             val nextValue2 = nextPlayer.calculateMessageCardValue(whoseTurn, nextPlayer, card)
             val myValue2 = nextPlayer.calculateMessageCardValue(whoseTurn, me, card)
-            return (if (nextValue2 >= myValue2) nextValue else myValue).toDouble()
+            return if (nextValue2 >= myValue2) nextValue * 0.9 + myValue * 0.1
+            else myValue * 0.9 + nextValue * 0.1
         }
         while (true) {
             var m = currentPercent
@@ -605,7 +624,7 @@ fun Player.calSendMessageCard(
         }
         return sum / n
     }
-    val notUp = game!!.isEarly && !isYuQinGuZong && identity != Black && !skills.any { it is LianLuo } &&
+    val notUp = game!!.isEarly && !isYuQinGuZong && identity != Black && (skills.any { it is LianLuo } ||
         availableCards.any { card ->
             !card.isPureBlack() &&
                 when (card.direction) {
@@ -613,7 +632,7 @@ fun Player.calSendMessageCard(
                     Right -> calAveValue(card, 0.7, Player::getNextRightAlivePlayer) >= 0
                     else -> false
                 }
-        }
+        })
     for (card in availableCards.sortCards(identity, true)) {
         val removedCard = if (isYuQinGuZong) deleteMessageCard(card.id) else null
         if (!notUp && (card.direction == Up || skills.any { it is LianLuo })) {
@@ -625,13 +644,13 @@ fun Player.calSendMessageCard(
                     result = SendMessageCardResult(card, target!!, Up, emptyList(), value)
                 }
             }
-        } else if (card.direction == Left) {
+        } else if (card.direction == Left || notUp && skills.any { it is LianLuo }) {
             val tmpValue = calAveValue(card, 0.7, Player::getNextLeftAlivePlayer)
             if (tmpValue > value) {
                 value = tmpValue
                 result = SendMessageCardResult(card, getNextLeftAlivePlayer(), Left, emptyList(), value)
             }
-        } else if (card.direction == Right) {
+        } else if (card.direction == Right || notUp && skills.any { it is LianLuo }) {
             val tmpValue = calAveValue(card, 0.7, Player::getNextRightAlivePlayer)
             if (tmpValue > value) {
                 value = tmpValue
@@ -642,10 +661,10 @@ fun Player.calSendMessageCard(
     }
     if (result.card.canLock() || skills.any { it is MustLockOne || it is QiangYingXiaLing }) {
         val removedCard = if (isYuQinGuZong) deleteMessageCard(result.card.id) else null
-        var maxValue = Int.MIN_VALUE
         var lockTarget: Player? = null
         when (result.dir) {
             Left -> {
+                var maxValue = Int.MIN_VALUE
                 val targets = game!!.sortedFrom(game!!.players.filter { it!!.alive }, location)
                 for (i in listOf(0) + ((targets.size - 1) downTo 1)) {
                     val target = targets[i]
@@ -658,6 +677,7 @@ fun Player.calSendMessageCard(
             }
 
             Right -> {
+                var maxValue = Int.MIN_VALUE
                 val targets = game!!.sortedFrom(game!!.players.filter { it!!.alive }, location)
                 for (target in targets) {
                     val v = calculateMessageCardValue(whoseTurn, target, result.card, sender = this)
@@ -668,17 +688,19 @@ fun Player.calSendMessageCard(
                 }
             }
 
-            else -> {
-                for (player in listOf(this, result.target)) {
-                    val v = calculateMessageCardValue(whoseTurn, player, result.card, sender = this)
-                    if (v > maxValue) {
-                        maxValue = v
-                        lockTarget = player
-                    }
-                }
+            else -> { // 向上的情报
+                val v1 = calculateMessageCardValue(whoseTurn, this, result.card, sender = this)
+                val v2 = calculateMessageCardValue(whoseTurn, result.target, result.card, sender = this)
+                // 如果不同，则锁分数高的。如果相同，则不锁
+                if (v1 > v2) lockTarget = this
+                else if (v1 < v2) lockTarget = result.target
             }
         }
-        lockTarget?.let { if (result.dir == Up && isPartner(result.target) || it !== this) result.lockedPlayers = listOf(it) }
+        lockTarget?.let {
+            // 如果刚开局，就不锁自己。如果是左右情报，就不锁自己。如果传递目标不是队友，就不锁自己
+            if (!game!!.isEarly && result.dir == Up && isPartner(result.target) || it !== this)
+                result.lockedPlayers = listOf(it)
+        }
         removedCard?.let { messageCards.add(it) }
     }
     logger.debug("计算结果：${result.card}(cardId:${result.card.id})传递给${result.target}，方向是${result.dir}，分数为${result.value}")
@@ -689,11 +711,19 @@ fun Player.calSendMessageCard(
  * 是否要救人
  */
 fun Player.wantToSave(whoseTurn: Player, whoDie: Player): Boolean {
+    // 秦圆圆
+    if (this !== whoDie && roleFaceUp && skills.any { it is BiYiShuangFei }) {
+        if (whoDie.roleFaceUp && whoDie.isMale && whoDie.identity == Black && whoDie.secretTask == Pioneer)
+            return false // 先行者
+        if (whoDie.messageCards.count(Red) <= 1 && whoDie.messageCards.count(Blue) <= 1 &&
+            game!!.players.any { it!!.roleFaceUp && it.isMale && it.identity == Black && it.secretTask == Sweeper })
+            return false // 清道夫
+    }
     // 如果死亡的是老汉且有情报
     if (whoDie.skills.any { it is RuGui } && whoDie.messageCards.isNotEmpty()) {
         // 如果老汉和当前回合角色是同一身份+老汉情报区有该颜色情报+当前回合角色听牌
         if (whoDie !== whoseTurn && whoDie.identity == whoseTurn.identity &&
-            !whoDie.messageCards.filter(whoDie.identity).isEmpty() &&
+            whoDie.messageCards.any { whoDie.identity in it.colors } &&
             whoseTurn.messageCards.count(whoseTurn.identity) == 2) {
             // 如果自己也是同一阵营，则不救
             if (isPartnerOrSelf(whoDie)) {

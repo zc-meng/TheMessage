@@ -80,6 +80,8 @@ class LiYou : Card {
                         joinIntoHand = true
                         r.cards.addAll(deckCards)
                         logger.info("${deckCards.joinToString()}加入了${r}的手牌")
+                        val ids = deckCards.map { it.id }
+                        g.players.forEach { p -> p!!.canWeiBiCardIds.addAll(ids) }
                     } else {
                         target.messageCards.addAll(deckCards)
                         val m = target.messageCards

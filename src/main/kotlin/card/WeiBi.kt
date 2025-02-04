@@ -118,7 +118,7 @@ class WeiBi : Card {
                 }
             }
             r.game!!.addEvent(GiveCardEvent(r, target, r))
-            target.weiBiFailRate = 0
+            r.game!!.players.forEach { it!!.canWeiBiCardIds.add(c.id) }
             return ResolveResult(
                 OnFinishResolveCard(r, r, target, card?.getOriginCard(), Wei_Bi, fsm), true
             )
@@ -175,10 +175,9 @@ class WeiBi : Card {
                 if (!valid) {
                     OnFinishResolveCard(r, r, target, card?.getOriginCard(), Wei_Bi, fsm)
                 } else if (hasCard(target, wantType)) {
-                    r.weiBiFailRate++
                     ExecuteWeiBi(fsm, r, target, card, wantType)
                 } else {
-                    r.weiBiFailRate = 0
+                    target.cards.forEach { r.canWeiBiCardIds.add(it.id) }
                     logger.info("${target}向${r}展示了所有手牌")
                     g.players.send { p ->
                         weiBiShowHandCardToc {
@@ -230,16 +229,26 @@ class WeiBi : Card {
                 it !== player && it!!.alive &&
                     (!it.roleFaceUp || !it.skills.any { s -> s is ChengFu || s is ShouKouRuPing || s is CunBuBuRang }) &&
                     it.isEnemy(player) &&
-                    it.cards.any { card -> card.type in availableCardType }
+                    it.cards.any { card -> card.id !in player.canWeiBiCardIds || card.type in availableCardType }
             }.run {
-                filter { it!!.cards.any { card -> card.type in listOf(Jie_Huo, Wu_Dao, Diao_Bao) } }.ifEmpty { this }
-                    .run { if (player.identity != Black) filter { it!!.identity != Black }.ifEmpty { this } else this }
+                filter {
+                    it!!.cards.any { card ->
+                        card.id in player.canWeiBiCardIds && card.type in listOf(Jie_Huo, Diao_Bao, Wu_Dao)
+                    }
+                }.ifEmpty {
+                    filter {
+                        it!!.cards.any { card ->
+                            card.id in player.canWeiBiCardIds && card.type in availableCardType
+                        }
+                    }
+                }.ifEmpty {
+                    if (player.identity != Black) filter { it!!.identity != Black }.ifEmpty { this } else this
+                }
             }.randomOrNull() ?: return false
+            val canWeiBiCards = p.cards.filter { it.id in player.canWeiBiCardIds && it.type in availableCardType }
             val cardType =
-                if (player.weiBiFailRate > 0) listOf(Jie_Huo, Wu_Dao, Diao_Bao).random() // 威逼成功后一定纯随机
-                else availableCardType.filter { cardType -> p.cards.any { it.type == cardType } }.run {
-                    filter { it != Cheng_Qing }.ifEmpty { this }
-                }.random()
+                if (canWeiBiCards.isNotEmpty()) canWeiBiCards.random().type // 有明牌优先威逼明牌
+                else listOf(Jie_Huo, Wu_Dao, Diao_Bao).random() // 否则纯随机
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
                 card.asCard(Wei_Bi).execute(player.game!!, player, p, cardType)

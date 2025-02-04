@@ -80,6 +80,7 @@ class HouZiQieXin : MainPhaseSkill() {
         r.incrSeq()
         r.addSkillUseCount(skillId)
         logger.info("${r}发动了[猴子窃信]，将手牌的${handCard}和${target}情报区的${messageCard}交换")
+        r.game!!.players.forEach { it!!.canWeiBiCardIds.add(messageCard.id) }
         r.deleteCard(handCard.id)
         target.deleteMessageCard(messageCard.id)
         r.cards.add(messageCard)

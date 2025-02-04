@@ -101,6 +101,7 @@ class CunBuBuRang : TriggeredSkill {
             val card = target.cards.random()
             r.incrSeq()
             logger.info("${r}对${target}发动了[寸步不让]，抽取了$card")
+            target.canWeiBiCardIds.add(card.id)
             target.deleteCard(card.id)
             r.cards.add(card)
             g.players.send {

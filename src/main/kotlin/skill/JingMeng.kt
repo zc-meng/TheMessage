@@ -85,7 +85,7 @@ class JingMeng : TriggeredSkill {
             }
             r.incrSeq()
             logger.info("${r}发动了[惊梦]，查看了${target}的手牌")
-            r.weiBiFailRate = 0
+            target.cards.forEach { r.canWeiBiCardIds.add(it.id) }
             return ResolveResult(ExecuteJingMengB(fsm, event, target), true)
         }
     }

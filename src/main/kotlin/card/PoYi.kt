@@ -7,7 +7,6 @@ import com.fengsheng.phase.SendPhaseIdle
 import com.fengsheng.protos.Common.card_type.Po_Yi
 import com.fengsheng.protos.Common.color
 import com.fengsheng.protos.Common.direction
-import com.fengsheng.protos.Common.role.*
 import com.fengsheng.protos.Fengsheng.po_yi_show_tos
 import com.fengsheng.protos.poYiShowToc
 import com.fengsheng.protos.poYiShowTos
@@ -84,8 +83,10 @@ class PoYi : Card {
             }
             if (r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {
-                    r.game!!.tryContinueResolveProtocol(r, poYiShowTos { show = sendPhase.messageCard.isBlack() })
-                }, 1, TimeUnit.SECONDS)
+                    r.game!!.tryContinueResolveProtocol(r, poYiShowTos {
+                        show = sendPhase.messageCard.isBlack() && !sendPhase.isMessageCardFaceUp
+                    })
+                }, if (sendPhase.isMessageCardFaceUp) 0 else 1, TimeUnit.SECONDS)
             }
             return null
         }
@@ -99,6 +100,11 @@ class PoYi : Card {
             if (player !== sendPhase.inFrontOfWhom) {
                 logger.error("你不是破译的使用者")
                 player.sendErrorMessage("你不是破译的使用者")
+                return null
+            }
+            if (message.show && sendPhase.isMessageCardFaceUp) {
+                logger.error("情报已经被翻开了，不能再次翻开")
+                player.sendErrorMessage("情报已经被翻开了，不能再次翻开")
                 return null
             }
             if (message.show && !sendPhase.messageCard.isBlack()) {

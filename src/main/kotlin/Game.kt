@@ -34,6 +34,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
 
     private var gameIdleTimeout: Timeout? = null
 
+    var lastJoinTime = 0L
+
     @Volatile
     var isStarted = false
 
@@ -54,7 +56,11 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         get() {
             val cnt = players.count { it is HumanPlayer }
             return when (cnt) {
-                1 -> Config.WaitSeconds * 2
+                1 -> {
+                    val humanPlayers = players.filterIsInstance<HumanPlayer>()
+                    if (humanPlayers[0].playerName == "唐乐林") Config.WaitSeconds * 4
+                    else Config.WaitSeconds * 2
+                }
                 2 -> Config.WaitSeconds
                 else -> (Config.WaitSeconds * (1 - 0.05 * cnt)).toInt()
             }
@@ -71,7 +77,11 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
     var mainPhaseAlreadyNotify = false
 
     fun setStartTimer() {
-        val delay = if (Config.IsGmEnable || players.count { it is HumanPlayer } <= 1) 0L else 5L
+        val delay = when {
+            Config.IsGmEnable -> 0L
+            players.count { it is HumanPlayer } <= 1 -> 5L
+            else -> 10L
+        }
         gameStartTimeout = GameExecutor.post(this, { start() }, delay, TimeUnit.SECONDS)
     }
 
@@ -94,6 +104,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         }
         players = players.toMutableList().apply { set(index, player) }
         player.location = index
+        if (player is HumanPlayer)
+            lastJoinTime = System.currentTimeMillis()
         val unready = players.count { it == null }
         val msg = joinRoomToc {
             name = player.playerName
@@ -193,7 +205,7 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 roleSkillsDataList[it],
                 roleSkillsDataList[it + players.size],
                 roleSkillsDataList[it + players.size * 2]
-            ).filter { r -> r.role != unknown }
+            ).filter { r -> r.role != unknown }.toMutableList()
         }))
     }
 
@@ -206,8 +218,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
         if (declaredWinners != null && winners != null) {
             if (players.size >= 5) {
                 if (winners.isNotEmpty() && winners.size < players.size) {
-                    val totalWinners = winners.sumOf { (Statistics.getScore(it) ?: 0).coerceIn(180..1900) }
-                    val totalPlayers = players.sumOf { (Statistics.getScore(it!!) ?: 0).coerceIn(180..1900) }
+                    val totalWinners = winners.sumOf { (Statistics.getScore(it) ?: 0).coerceIn(180..2000) }
+                    val totalPlayers = players.sumOf { (Statistics.getScore(it!!) ?: 0).coerceIn(180..2000) }
                     val totalLoser = totalPlayers - totalWinners
                     val delta = totalLoser / (players.size - winners.size) - totalWinners / winners.size
                     for ((i, p) in players.withIndex()) {
@@ -244,7 +256,8 @@ class Game(val id: Int, totalPlayerCount: Int, val actorRef: ActorRef) {
                 Statistics.addPlayerGameCount(playerGameResultList)
                 Statistics.calculateRankList()
                 QQPusher.push(this, declaredWinners, winners, addScoreMap, newScoreMap, humanPlayers.size > 1 ||
-                    humanPlayers[0].playerName == "半藏")
+                    humanPlayers[0].playerName == "半藏" ||
+                    humanPlayers[0].playerName == "唐乐林")
             }
             players.forEach { it!!.notifyWin(declaredWinners, winners, addScoreMap, newScoreMap) }
         }

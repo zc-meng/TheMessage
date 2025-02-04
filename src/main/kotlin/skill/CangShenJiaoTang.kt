@@ -195,6 +195,7 @@ class CangShenJiaoTang : TriggeredSkill {
                     player.game!!.addEvent(AddMessageCardEvent(event.whoseTurn))
                 } else {
                     logger.info("${player}发动了[藏身教堂]，将${target}面前的${card}加入了手牌")
+                    player.game!!.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
                     target.deleteMessageCard(message.cardId)
                     player.cards.add(card)
                 }

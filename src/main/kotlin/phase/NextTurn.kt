@@ -34,6 +34,9 @@ data class NextTurn(override val whoseTurn: Player) : ProcessFsm() {
                 game.players.forEach {
                     it!!.resetSkillUseCount()
                     it.useCardThisTurn = false
+                    it.canWeiBiCardIds.removeIf { cid ->
+                        !game.players.any { p -> p!!.alive && p !== it && p.cards.any { c -> c.id == cid } }
+                    }
                 }
                 InvalidSkill.reset(game)
                 OneTurnSkill.reset(game)

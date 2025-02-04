@@ -80,6 +80,7 @@ class TanXuBianShi : MainPhaseSkill() {
 
         override fun resolve(): ResolveResult? {
             logger.info("${r}发动了[探虚辨实]，给了${target}一张$card")
+            r.canWeiBiCardIds.add(card.id)
             r.deleteCard(card.id)
             target.cards.add(card)
             val mustGiveColor = if (target.identity == Black || target.cards.all { target.identity !in it.colors }) null
@@ -148,6 +149,9 @@ class TanXuBianShi : MainPhaseSkill() {
             target.deleteCard(card.id)
             r.cards.add(card)
             logger.info("${target}给了${r}$card")
+            target.canWeiBiCardIds.add(card.id)
+            r.coefficientA = (r.coefficientA + 1) / 2
+            r.coefficientB = (r.coefficientB + 1) / 2
             g.players.send { p ->
                 skillTanXuBianShiBToc {
                     playerId = p.getAlternativeLocation(r.location)

@@ -84,7 +84,10 @@ class JiuJi : TriggeredSkill {
             logger.info("${r}发动了[就计]")
             g.players.send { skillJiuJiAToc { playerId = it.getAlternativeLocation(r.location) } }
             r.draw(2)
-            event.card?.let { r.skills += JiuJi2() }
+            event.card?.let {
+                r.skills += JiuJi2()
+                event.player.canWeiBiCardIds.add(it.id)
+            }
             return ResolveResult(fsm, true)
         }
     }

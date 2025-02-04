@@ -72,6 +72,7 @@ class JiaoJi : MainPhaseSkill() {
             cards = List(2) { target.deleteCard(target.cards.random().id)!! }
         }
         logger.info("${r}对${target}发动了[交际]，抽取了${cards.joinToString()}")
+        cards.forEach { target.canWeiBiCardIds.add(it.id) }
         r.cards.addAll(cards)
         val black = r.messageCards.count(color.Black)
         val needReturnCount = (cards.size - black).coerceAtLeast(0)..cards.size
@@ -150,6 +151,7 @@ class JiaoJi : MainPhaseSkill() {
             }
             r.incrSeq()
             logger.info("${r}将${cards.joinToString()}还给$target")
+            cards.forEach { r.canWeiBiCardIds.add(it.id) }
             r.cards.removeAll(cards.toSet())
             target.cards.addAll(cards)
             g.players.send { p ->

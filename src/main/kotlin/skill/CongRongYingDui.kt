@@ -91,6 +91,7 @@ class CongRongYingDui : TriggeredSkill {
             val card = if (!message.drawCard) {
                 target.cards.random().also { c ->
                     logger.info("${r}发动了[从容应对]，抽取了${target}的$c")
+                    target.canWeiBiCardIds.add(c.id)
                     target.deleteCard(c.id)
                     player.cards.add(c)
                     r.game!!.addEvent(GiveCardEvent(event.whoseTurn, target, r))

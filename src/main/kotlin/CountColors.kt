@@ -26,13 +26,15 @@ class CountColors(cards: Iterable<Card>) {
 
     operator fun plusAssign(cards: Iterable<Card>) = cards.forEach { plusAssign(it.colors) }
     operator fun plusAssign(card: Card) = plusAssign(card.colors)
-    operator fun plusAssign(colors: List<color>) = colors.forEach {
+    operator fun plusAssign(colors: List<color>) {
         if (colors.any { c -> c != Black }) trueCard++
-        when (it) {
-            Black -> black++
-            Red -> red++
-            Blue -> blue++
-            else -> {}
+        colors.forEach {
+            when (it) {
+                Black -> black++
+                Red -> red++
+                Blue -> blue++
+                else -> {}
+            }
         }
     }
 

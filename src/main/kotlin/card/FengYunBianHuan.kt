@@ -6,8 +6,7 @@ import com.fengsheng.phase.MainPhaseIdle
 import com.fengsheng.phase.OnFinishResolveCard
 import com.fengsheng.phase.ResolveCard
 import com.fengsheng.protos.*
-import com.fengsheng.protos.Common.card_type.Feng_Yun_Bian_Huan
-import com.fengsheng.protos.Common.card_type.Wei_Bi
+import com.fengsheng.protos.Common.card_type.*
 import com.fengsheng.protos.Common.color
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
@@ -72,7 +71,6 @@ class FengYunBianHuan : Card {
         val resolveFunc = { _: Boolean ->
             ExecuteFengYunBianHuan(this@FengYunBianHuan, drawCards, players, fsm)
         }
-        r.weiBiFailRate = 0
         g.resolve(ResolveCard(r, r, null, getOriginCard(), Feng_Yun_Bian_Huan, resolveFunc, fsm))
     }
 
@@ -154,8 +152,15 @@ class FengYunBianHuan : Card {
             if (message.asMessageCard) {
                 logger.info("${player}把${chooseCard}置入情报区")
                 player.messageCards.add(chooseCard)
+                for (p in player.game!!.players) {
+                    if (p!!.alive && p.isPartner(player)) {
+                        p.coefficientA = (p.coefficientA + 1) / 2
+                        p.coefficientB = (p.coefficientB + 1) / 2
+                    }
+                }
             } else {
                 logger.info("${player}把${chooseCard}加入手牌")
+                player.game!!.players.forEach { it!!.canWeiBiCardIds.add(chooseCard.id) }
                 player.cards.add(chooseCard)
             }
             player.game!!.players.send {
@@ -181,13 +186,22 @@ class FengYunBianHuan : Card {
             } else {
                 var value = 0
                 var card: Card? = null
-                for (c in drawCards) {
-                    !r.messageCards.any { it.hasSameColor(c) } || continue
-                    val result = r.calculateMessageCardValue(mainPhaseIdle.whoseTurn, r, c)
-                    if (result > value) {
-                        value = result
-                        card = c
+                if (r !== mainPhaseIdle.whoseTurn || r.cards.isNotEmpty()) {
+                    // 风云变幻选牌的情况下，因为都是明牌，不应该进行机器人打牌风格的波动
+                    val coefficientA = r.coefficientA
+                    val coefficientB = r.coefficientB
+                    r.coefficientA = 1.0
+                    r.coefficientB = 0
+                    for (c in drawCards) {
+                        !r.messageCards.any { it.hasSameColor(c) } || continue
+                        val result = r.calculateMessageCardValue(mainPhaseIdle.whoseTurn, r, c)
+                        if (result > value) {
+                            value = result
+                            card = c
+                        }
                     }
+                    r.coefficientA = coefficientA
+                    r.coefficientB = coefficientB
                 }
                 r.game!!.tryContinueResolveProtocol(r, fengYunBianHuanChooseCardTos {
                     if (card != null) {
@@ -196,8 +210,10 @@ class FengYunBianHuan : Card {
                     } else {
                         cardId =
                             if (r === mainPhaseIdle.whoseTurn) {
-                                drawCards.filter { it.type == Wei_Bi } // 自己回合优先拿威逼
-                                    .ifEmpty { drawCards.filterByRole(r.role) } // 没有威逼先按拿牌偏好
+                                drawCards.filter {
+                                    if (r.cards.isEmpty()) it.type == Ping_Heng // 无牌先平衡
+                                    else it.type == Wei_Bi // 有牌先威逼
+                                }.ifEmpty { drawCards.filterByRole(r.role) } // 没有威逼先按拿牌偏好
                                     .ifEmpty { drawCards } // 都没有就全随机
                             } else {
                                 drawCards.filterByRole(r.role) // 非自己回合按拿牌偏好
@@ -218,22 +234,21 @@ class FengYunBianHuan : Card {
             !player.cannotPlayCard(Feng_Yun_Bian_Huan) || return false
             if (player.identity == Black) {
                 when (player.secretTask) {
-                    Disturber -> {}
-                    Collector, Mutator -> {
-                        val counts = CountColors(player.messageCards)
-                        var zeroColors = 0
-                        if (counts.red == 0) zeroColors++
-                        if (counts.blue == 0) zeroColors++
-                        if (counts.blue == 0) zeroColors++
-                        if (zeroColors < 2) return false
-                    }
+                    Collector, Mutator, Disturber ->
+                        if (!player.game!!.isEarly) return false
                     else -> return false
                 }
-            } else if (player.game!!.players.all {
-                    !it!!.alive ||
-                        it.identity != player.identity ||
-                        it.messageCards.any { c -> player.identity in c.colors }
-                }) return false
+            } else if (!player.game!!.isEarly) {
+                var score = 0
+                val alivePlayers = player.game!!.players.filterNotNull().filter { it.alive }
+                var curScore = alivePlayers.size
+                for (p in player.game!!.sortedFrom(alivePlayers, player.location)) {
+                    if (p.identity == player.identity) score += curScore
+                    else score -= curScore
+                    curScore--
+                }
+                score >= 0 || return false
+            }
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
                 card.asCard(Feng_Yun_Bian_Huan).execute(player.game!!, player)

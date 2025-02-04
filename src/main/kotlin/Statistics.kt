@@ -77,57 +77,11 @@ object Statistics {
             val now = System.currentTimeMillis()
             var win = 0
             var game = 0
-            var rbwin = 0
-            var rbgame = 0
-            var blackwin = 0
-            var blackgame = 0
-            var killerwin = 0
-            var killergame = 0
-            var stealerwin = 0
-            var stealergame = 0
-            var collectorwin = 0
-            var collectorgame = 0
-            var mutatorwin = 0
-            var mutatorgame = 0
-            var pioneerwin = 0
-            var pioneergame = 0
-            var disturberwin = 0
-            var disturbergame = 0
-            var sweeperwin = 0
-            var sweepergame = 0
             var updateTrial = false
             for (count in playerGameResultList) {
                 if (count.isWin) {
-                    if (count.identity == Black) {
-                        blackwin++
-                        when (count.secret_task) {
-                            Killer -> killerwin++
-                            Stealer -> stealerwin++
-                            Collector -> collectorwin++
-                            Mutator -> mutatorwin++
-                            Pioneer -> pioneerwin++
-                            Disturber -> disturberwin++
-                            Sweeper -> sweeperwin++
-                            else -> {}
-                        }
-                    } else rbwin++
-                    win++
                     if (trialStartTime.remove(count.playerName) != null) updateTrial = true
                 }
-                if (count.identity == Black) {
-                    blackgame++
-                    when (count.secret_task) {
-                        Killer -> killergame++
-                        Stealer -> stealergame++
-                        Collector -> collectorgame++
-                        Mutator -> mutatorgame++
-                        Pioneer -> pioneergame++
-                        Disturber -> disturbergame++
-                        Sweeper -> sweepergame++
-                        else -> {}
-                    }
-                } else rbgame++
-                game++
                 playerInfoMap.computeIfPresent(count.playerName) { _, v ->
                     val addWin = if (count.isWin) 1 else 0
                     val addRbWin = if (count.isWin && count.identity != Black) 1 else 0
@@ -138,7 +92,7 @@ object Statistics {
                     val addRbGame = if (count.identity != Black) 1 else 0
                     val addBlackGame = if (count.identity == Black) 1 else 0
                     val newBlacksGame = if (count.identity == Black)
-                        v.blacksGameCount + (count.secret_task to ((v.blacksWinCount[count.secret_task] ?: 0) + 1))
+                        v.blacksGameCount + (count.secret_task to ((v.blacksGameCount[count.secret_task] ?: 0) + 1))
                     else v.blacksGameCount
                     v.copy(winCount = v.winCount + addWin,
                         gameCount = v.gameCount + 1, lastTime = now,
@@ -267,7 +221,7 @@ object Statistics {
     fun getSeasonRankList(): BufferedImage {
         val l1 = playerInfoMap.map { (_, v) ->
             v.copy(score = v.maxScore.coerceAtLeast(0))
-        }.filter { it.score > 0 }.sorted()
+        }.filter { it.score > 0 && it.gameCount > 0 }.sorted()
         return Image.genRankListImage(l1.take(50))
     }
 
@@ -314,10 +268,11 @@ object Statistics {
         playerInfoMap.keys.forEach {
             playerInfoMap.computeIfPresent(it) { _, v ->
                 if (v.score <= 1) return@computeIfPresent null
+                val newTitle = v.title + getSeasonTitleByScore(v.maxScore)
                 v.copy(
                     winCount = 0,
                     gameCount = 0,
-                    title = v.title + getSeasonTitleByScore(v.maxScore),
+                    title = sortTitles(newTitle),
                     score = v.score / 2,
                     energy = v.energy.coerceAtLeast(10),
                     maxScore = v.score / 2,
@@ -341,6 +296,32 @@ object Statistics {
 
     val totalPlayerGameCount: PlayerGameCount
         get() = PlayerGameCount(totalWinCount.get(), totalGameCount.get())
+
+    fun getTitleRank(title: String): Int = when (title) {
+        "\u2B50" -> 1 // score >= 2900
+        "\uD83D\uDC51" -> 2 // score >= 1900
+        "\uD83D\uDCA0" -> 3 // score >= 1400
+        "\uD83D\uDC8D" -> 4 // score >= 920
+        "\uD83E\uDD47" -> 5 // score >= 520
+        else -> 6 // Lower than 520
+    }
+
+    fun sortTitles(titles: String): String {
+        val titleList = mutableListOf<String>()
+        var i = 0
+        while (i < titles.length) {
+            if (titles[i] == '\u2B50') {
+                // 如果是单字符 emoji（⭐）
+                titleList.add(titles[i].toString())
+                i += 1
+            } else {
+                // 处理其他双字符 emoji
+                titleList.add(titles.substring(i, i + 2))
+                i += 2
+            }
+        }
+        return titleList.sortedBy { getTitleRank(it) }.joinToString("")
+    }
 
     private fun savePlayerInfo() {
         val sb = StringBuilder()

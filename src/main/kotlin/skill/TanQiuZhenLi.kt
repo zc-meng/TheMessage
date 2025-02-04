@@ -3,11 +3,9 @@ package com.fengsheng.skill
 import com.fengsheng.*
 import com.fengsheng.RobotPlayer.Companion.sortCards
 import com.fengsheng.card.Card
-import com.fengsheng.card.count
+import com.fengsheng.card.PlayerAndCard
 import com.fengsheng.phase.MainPhaseIdle
-import com.fengsheng.protos.Common.color
-import com.fengsheng.protos.Common.color.Blue
-import com.fengsheng.protos.Common.color.Red
+import com.fengsheng.protos.Common.color.*
 import com.fengsheng.protos.Role.skill_tan_qiu_zhen_li_a_tos
 import com.fengsheng.protos.Role.skill_tan_qiu_zhen_li_b_tos
 import com.fengsheng.protos.skillTanQiuZhenLiAToc
@@ -205,23 +203,57 @@ class TanQiuZhenLi : MainPhaseSkill() {
 
     companion object {
         fun ai(e: MainPhaseIdle, skill: ActiveSkill): Boolean {
-            if (e.whoseTurn.getSkillUseCount(SkillId.TAN_QIU_ZHEN_LI) > 0) return false
-            val availableColor = ArrayList<color>()
-            if (e.whoseTurn.messageCards.count(Red) < 2) availableColor.add(Red)
-            if (e.whoseTurn.messageCards.count(Blue) < 2) availableColor.add(Blue)
-            val color = availableColor.randomOrNull() ?: return false
-
-            fun isPureColor(c: Card) = c.colors.size == 1 && c.colors.first() == color
-
-            val target = e.whoseTurn.game!!.players.filter {
-                it!!.isEnemy(e.whoseTurn) && it.alive && it.messageCards.any(::isPureColor)
-            }.randomOrNull() ?: return false
-            val card = target.messageCards.filter(::isPureColor).randomOrNull() ?: return false
-            val cardId = card.id
+            e.whoseTurn.getSkillUseCount(SkillId.TAN_QIU_ZHEN_LI) == 0 || return false
+            val player = e.whoseTurn
+            var target: PlayerAndCard? = null
+            var value = 0
+            for (p in e.whoseTurn.game!!.players.shuffled()) {
+                p!!.alive && p !== player || continue
+                for (c in p.messageCards.toList()) {
+                    !player.checkThreeSameMessageCard(c) || continue
+                    val v1 = player.calculateRemoveCardValue(player, p, c)
+                    val v2 = player.calculateMessageCardValue(player, player, c)
+                    val index = p.messageCards.indexOfFirst { card -> c.id == card.id }
+                    if (index >= 0) p.messageCards.removeAt(index)
+                    player.messageCards.add(c)
+                    val blackHandCard = p.cards.sortCards(p.identity, true).find { it.isPureBlack() }
+                    var vOther3 = 0
+                    if (blackHandCard != null)
+                        vOther3 = -10 + p.calculateMessageCardValue(player, player, blackHandCard)
+                    val blackMessageCard = p.messageCards.find { it.id != c.id && it.isPureBlack() }
+                    var vOther4 = 0
+                    if (blackMessageCard != null)
+                        vOther4 = p.calculateRemoveCardValue(player, p, blackMessageCard) +
+                            p.calculateMessageCardValue(player, player, blackMessageCard)
+                    if (vOther3 > 0 || vOther4 > 0) {
+                        if (vOther3 > vOther4) { // 从对方角度看，从手牌放分高
+                            var v3 = player.calculateMessageCardValue(player, player, blackHandCard!!)
+                            if (p.identity != Black && player.identity != Black) {
+                                if (player.identity == p.identity) v3 -= 10
+                                else v3 += 10
+                            }
+                            if (v1 + v2 + v3 > value) {
+                                value = v1 + v2 + v3
+                                target = PlayerAndCard(p, c)
+                            }
+                        } else { // 从对方角度看，从情报区放分高
+                            val v4 = player.calculateRemoveCardValue(player, p, blackMessageCard!!) +
+                                player.calculateMessageCardValue(player, player, blackMessageCard)
+                            if (v1 + v2 + v4 > value) {
+                                value = v1 + v2 + v4
+                                target = PlayerAndCard(p, c)
+                            }
+                        }
+                    }
+                    player.messageCards.removeLast()
+                    if (index >= 0) p.messageCards.add(index, c)
+                }
+            }
+            if (target == null) return false
             GameExecutor.post(e.whoseTurn.game!!, {
                 skill.executeProtocol(e.whoseTurn.game!!, e.whoseTurn, skillTanQiuZhenLiATos {
-                    targetPlayerId = e.whoseTurn.getAlternativeLocation(target.location)
-                    this.cardId = cardId
+                    targetPlayerId = e.whoseTurn.getAlternativeLocation(target.player.location)
+                    cardId = target.card.id
                 })
             }, 3, TimeUnit.SECONDS)
             return true

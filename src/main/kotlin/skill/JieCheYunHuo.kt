@@ -7,7 +7,7 @@ import com.fengsheng.SendCardEvent
 import com.fengsheng.protos.Common.card_type.Wu_Dao
 
 /**
- * 火车司机技能【借车运货】：你传出的情报不能被误导。
+ * 火车司机技能【借车运货】：你传出的情报不能被其他角色误导。
  */
 class JieCheYunHuo : TriggeredSkill {
     override val skillId = SkillId.JIE_CHE_YUN_HUO
@@ -18,7 +18,7 @@ class JieCheYunHuo : TriggeredSkill {
         g.findEvent<SendCardEvent>(this) { event ->
             askWhom === event.sender
         } ?: return null
-        g.players.forEach { it!!.skills += CannotPlayCard(listOf(Wu_Dao)) }
+        g.players.forEach { if (it !== askWhom) it!!.skills += CannotPlayCard(listOf(Wu_Dao)) }
         return null
     }
 }

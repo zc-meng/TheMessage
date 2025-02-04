@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 object Config {
-    val FileServerPort: Int
     val ListenWebSocketPort: Int
     val TotalPlayerCount: Int
     val RecordMaxInterval: Int
@@ -41,7 +40,6 @@ object Config {
         } catch (e: Exception) {
             throw RuntimeException(e)
         }
-        pps.putIfAbsent("file_server_port", "9091")
         pps.putIfAbsent("listen_websocket_port", "12222")
         pps.putIfAbsent("player.total_count", "5")
         pps.putIfAbsent("rule.record_max_interval", "3")
@@ -60,7 +58,6 @@ object Config {
         pps.putIfAbsent("push.robot_qq", "12345678")
         pps.putIfAbsent("push.push_qq_groups", "")
         pps.putIfAbsent("waiting_second", "15")
-        FileServerPort = pps.getProperty("file_server_port").toInt()
         ListenWebSocketPort = pps.getProperty("listen_websocket_port").toInt()
         RecordMaxInterval = pps.getProperty("rule.record_max_interval").toInt()
         TotalPlayerCount = pps.getProperty("player.total_count").toInt()
@@ -98,7 +95,6 @@ object Config {
     fun save() {
         synchronized(this) {
             val pps = Properties()
-            pps["file_server_port"] = FileServerPort.toString()
             pps["listen_websocket_port"] = ListenWebSocketPort.toString()
             pps["player.total_count"] = TotalPlayerCount.toString()
             pps["rule.record_max_interval"] = RecordMaxInterval.toString()

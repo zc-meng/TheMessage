@@ -20,13 +20,19 @@ import kotlin.math.roundToInt
 /**
  * 等待玩家选择角色
  */
-data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsData>>) : WaitingFsm {
+data class WaitForSelectRole(val game: Game, val options: List<MutableList<RoleSkillsData>>) : WaitingFsm {
     private val selected = MutableList<RoleSkillsData?>(game.players.size) { null }
     override val whoseTurn = game.players.random()!!
 
     private var endTime = 0L
 
     override fun resolve(): ResolveResult? {
+        for (player in game.players) {
+            if (player!!.playerName.run { startsWith("大") && endsWith("哥") }) {
+                options.all { it.all { o -> o.role != jin_sheng_huo } } || continue
+                options[player.location][0] = RoleCache.getRoleSkillsData(jin_sheng_huo)!!
+            }
+        }
         endTime = System.currentTimeMillis() + game.waitSecond * 2 * 1000
         for (player in game.players) {
             if (player is HumanPlayer) {
@@ -174,6 +180,9 @@ data class WaitForSelectRole(val game: Game, val options: List<List<RoleSkillsDa
             han_mei,
             lian_yuan,
             a_fu_luo_la,
+            sp_lian_yuan,
+            shang_yu,
+            bian_yun_jiang
         )
     }
 }

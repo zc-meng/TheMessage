@@ -71,6 +71,10 @@ class GuangFaBao : ActiveSkill {
             }
             if (r is RobotPlayer) {
                 GameExecutor.post(g, {
+                    val coefficientA = r.coefficientA
+                    val coefficientB = r.coefficientB
+                    r.coefficientA = 1.0
+                    r.coefficientB = 0
                     val players = g.sortedFrom(g.players.filter { it!!.alive }, r.location)
                     var card: Card? = null
                     var target: Player? = null
@@ -103,6 +107,8 @@ class GuangFaBao : ActiveSkill {
                             target = null
                         }
                     }
+                    r.coefficientA = coefficientA
+                    r.coefficientB = coefficientB
                     g.tryContinueResolveProtocol(r, skillGuangFaBaoBTos {
                         if (card != null && target != null) {
                             enable = true

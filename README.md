@@ -7,6 +7,8 @@
 [![](https://img.shields.io/github/contributors/CuteReimu/TheMessage)](https://github.com/CuteReimu/TheMessage/graphs/contributors "贡献者")
 [![](https://img.shields.io/github/license/CuteReimu/TheMessage)](https://github.com/CuteReimu/TheMessage/blob/kotlin/LICENSE "许可协议")
 
+**如果你非常想为本项目做贡献，但又不知道从哪里入手，可以尝试解决[这些问题](https://github.com/CuteReimu/TheMessage/contribute)**
+
 ## 声明
 
 - **本项目采用`AGPLv3`协议开源，任何直接、间接接触本项目的软件也要求使用`AGPLv3`协议开源**
@@ -19,8 +21,28 @@
 ## 运行
 
 ```shell
+# 调试命令
 ./gradlew run
 ```
+
+> [!NOTE]
+> 执行`run`后卡在88%左右是正常现象，并且显示`> :run`是说明已经正在运行了，已经开启监听对应端口了。（为什么不显示100%？因为100%就是运行结束了！可以自行了解一下gradle。）
+
+> [!IMPORTANT]
+> `./gradlew run`一般用于本地调试，方便使用IDE工具进行断点调试，占用内存较大。
+> 
+> 想要编译并部署请使用：
+> 
+> ```shell
+> # 编译
+> ./gradlew build
+>
+> # 编译后的jar包在build/libs目录下
+> cd build/libs
+>
+> # 部署后自行用java运行
+> java -jar fengsheng-1.0-SNAPSHOT.jar
+> ```
 
 ## 配置
 
@@ -122,12 +144,6 @@ push.push_qq_groups=12345678
 
 *纯人机局不会推送，至少要有2名真人玩家时才会推送。*
 
-## 关于文件服务器
-
-提供了一个文件服务器端口，供客户端下载资源文件，`file_server_port`字段配成0就是不启用文件服务器。
-
-启动后，访问`http://ip:port/`即可看到`files`文件夹（事先自行创建一个`files`文件夹）下的文件列表，点击文件名即可下载。（目前暂不支持嵌套文件夹）
-
 ## 开发相关
 
 ### gradle镜像
@@ -137,6 +153,19 @@ push.push_qq_groups=12345678
 ```diff
 - distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-bin.zip
 + distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.7-bin.zip
+```
+
+### maven镜像
+
+如果依赖库下载太慢，可以修改`build.gradle.kts`，自行使用下载较快的镜像
+
+```diff
++ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+repositories {
++   maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
+    mavenCentral()
+}
 ```
 
 ### IDEA问题

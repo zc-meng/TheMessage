@@ -89,6 +89,7 @@ class JianRen : TriggeredSkill {
                 r.game!!.deck.draw(1)
                 r.cards.add(card)
                 logger.info("${r}将${card}加入了手牌")
+                r.game!!.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
             }
             val g = r.game!!
             g.players.send { p ->

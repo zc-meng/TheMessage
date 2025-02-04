@@ -75,6 +75,7 @@ class GongFen : ActiveSkill {
             } else {
                 logger.info("${card}加入${r}的手牌")
                 r.cards.add(card)
+                g.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
             }
             g.players.send {
                 skillGongFenToc {

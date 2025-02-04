@@ -1,13 +1,6 @@
 package com.fengsheng.network
 
 import com.fengsheng.Config
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.http.content.*
-import io.ktor.server.netty.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
@@ -16,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 object Network {
     fun init() {
@@ -25,8 +17,7 @@ object Network {
 //                launch(Dispatchers.IO) { initGameNetwork() },
                 launch(Dispatchers.IO) { initGameWebSocketNetwork() },
                 launch(Dispatchers.IO) { initGmNetwork() },
-                if (Config.FileServerPort != 0) launch(Dispatchers.IO) { initFileServer(Config.FileServerPort) } else null
-            ).filterNotNull().joinAll()
+            ).joinAll()
         }
     }
 
@@ -85,26 +76,5 @@ object Network {
             bossGroup.shutdownGracefully()
             workerGroup.shutdownGracefully()
         }
-    }
-
-    private fun initFileServer(port: Int) {
-        embeddedServer(Netty, port = port) {
-            routing {
-                get("/") {
-                    val directory = File("files")
-                    val files = directory.listFiles()
-                    val response = buildString {
-                        append("<html><body>")
-                        files?.forEach { file ->
-                            append("<a href=\"/${file.name}\">${file.name}</a><br/>")
-                        }
-                        append("</body></html>")
-                    }
-                    call.respondText(response, ContentType.Text.Html)
-                }
-
-                staticFiles("", File("files"))
-            }
-        }.start(wait = true)
     }
 }

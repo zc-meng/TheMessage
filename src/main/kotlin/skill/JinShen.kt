@@ -72,6 +72,7 @@ class JinShen : TriggeredSkill {
             }
             r.incrSeq()
             logger.info("${r}发动了[谨慎]，用${card}交换了原情报${event.messageCard}")
+            g.players.forEach { it!!.canWeiBiCardIds.add(event.messageCard.id) }
             val messageCard = event.messageCard
             r.deleteCard(card.id)
             r.deleteMessageCard(messageCard.id)

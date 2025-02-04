@@ -4,8 +4,7 @@ import com.fengsheng.*
 import com.fengsheng.RobotPlayer.Companion.bestCard
 import com.fengsheng.card.filterByRole
 import com.fengsheng.phase.MainPhaseIdle
-import com.fengsheng.protos.Common.*
-import com.fengsheng.protos.Common.card_type.*
+import com.fengsheng.protos.Common.card_type.Ping_Heng
 import com.fengsheng.protos.Role.skill_ji_ban_a_tos
 import com.fengsheng.protos.Role.skill_ji_ban_b_tos
 import com.fengsheng.protos.skillJiBanAToc
@@ -120,6 +119,7 @@ class JiBan : MainPhaseSkill() {
             }
             r.incrSeq()
             logger.info("${r}将${cards.joinToString()}交给$target")
+            cards.forEach { r.canWeiBiCardIds.add(it.id) }
             r.cards.removeAll(cards.toSet())
             target.cards.addAll(cards)
             g.players.send { p ->

@@ -1,42 +1,40 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "1.9.23"
+    kotlin("jvm") version "2.1.0"
     application
     idea
     id("com.google.protobuf") version "0.9.4"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
 
 group = "com.fengsheng"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    maven("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
     mavenCentral()
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation("com.typesafe.akka:akka-actor_2.13:2.8.5")
-    implementation("io.netty:netty-all:4.1.108.Final")
-    implementation("io.ktor:ktor-server-netty:2.3.10")
-    implementation("io.ktor:ktor-server-core:2.3.10")
-    implementation("com.google.protobuf:protobuf-java-util:4.26.0")
-    implementation("com.google.protobuf:protobuf-kotlin:4.26.0")
-    implementation("org.apache.logging.log4j:log4j-api:2.23.1")
-    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.4.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.23.1")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.23")
+    implementation("io.netty:netty-all:4.1.117.Final")
+    implementation("com.google.protobuf:protobuf-java-util:4.29.3")
+    implementation("com.google.protobuf:protobuf-kotlin:4.29.3")
+    implementation("org.apache.logging.log4j:log4j-api:2.24.3")
+    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.5.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.24.3")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+    implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.apache.commons:commons-text:1.11.0")
+    implementation("org.apache.commons:commons-text:1.13.0")
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.26.0"
+        artifact = "com.google.protobuf:protoc:4.29.3"
     }
 
     generateProtoTasks {
@@ -48,8 +46,10 @@ protobuf {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }
 
 application {

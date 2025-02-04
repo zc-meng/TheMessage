@@ -103,8 +103,10 @@ class AnCangShaJi : TriggeredSkill {
                 logger.info("${r}发动了[暗藏杀机]，抽取了${target}一张$handCard")
                 target.deleteCard(handCard!!.id)
                 r.cards.add(handCard)
-                if (r !== target)
+                if (r !== target) {
+                    target.canWeiBiCardIds.add(handCard.id)
                     r.game!!.addEvent(GiveCardEvent(event.whoseTurn, target, r))
+                }
             } else {
                 logger.info("${r}发动了[暗藏杀机]，将自己面前的${card}置入${target}的情报区")
                 r.deleteMessageCard(card.id)

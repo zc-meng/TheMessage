@@ -6,6 +6,7 @@ import com.fengsheng.phase.OnFinishResolveCard
 import com.fengsheng.phase.ResolveCard
 import com.fengsheng.protos.Common.card_type.*
 import com.fengsheng.protos.Common.color
+import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Common.direction
 import com.fengsheng.protos.usePingHengToc
 import com.fengsheng.skill.ConvertCardSkill
@@ -91,7 +92,7 @@ class PingHeng : Card {
             val identity = player.identity
             val p = player.game!!.players.filter {
                 if (it === player || !it!!.alive) false
-                else if (identity != color.Black && identity == it.identity) it.cards.size <= 3
+                else if (identity != Black && identity == it.identity) it.cards.size <= 3
                 else it.cards.size >= 3
             }.ifEmpty {
                 // 当敌人全部手牌小于3张时，优先选择手牌比自己多的敌人
@@ -100,7 +101,9 @@ class PingHeng : Card {
                 }
             }
             p.size >= 1 || return false
-            val target = p.maxBy { abs(it!!.cards.size - 3.1) }
+            val target = p.maxBy {
+                abs(it!!.cards.size - 3.1).run { if (identity != Black && it.identity == Black) this / 2 else this }
+            }
             GameExecutor.post(player.game!!, {
                 convertCardSkill?.onConvert(player)
                 card.asCard(Ping_Heng).execute(player.game!!, player, target!!)

@@ -55,7 +55,7 @@ class TouTian : ActiveSkill {
             val newValue = player.calculateMessageCardValue(e.whoseTurn, player, e.messageCard, sender = e.sender)
             newValue > oldValue || return false
             val result = player.calFightPhase(e)
-            if (result != null && result.cardType in listOf(Jie_Huo, Wu_Dao) && result.value >= newValue) return false
+            if (result != null && result.cardType in listOf(Jie_Huo, Wu_Dao) && result.value > newValue + 11) return false
             GameExecutor.post(e.whoseFightTurn.game!!, {
                 skill.executeProtocol(e.whoseFightTurn.game!!, e.whoseFightTurn, skillTouTianTos { })
             }, 3, TimeUnit.SECONDS)

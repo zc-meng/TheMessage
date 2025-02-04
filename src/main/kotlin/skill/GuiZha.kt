@@ -5,12 +5,9 @@ import com.fengsheng.card.LiYou
 import com.fengsheng.card.WeiBi
 import com.fengsheng.card.count
 import com.fengsheng.phase.MainPhaseIdle
-import com.fengsheng.protos.Common.*
 import com.fengsheng.protos.Common.card_type.*
-import com.fengsheng.protos.Common.card_type.Li_You
-import com.fengsheng.protos.Common.card_type.Wei_Bi
 import com.fengsheng.protos.Common.color.Black
-import com.fengsheng.protos.Common.secret_task.*
+import com.fengsheng.protos.Common.secret_task.Disturber
 import com.fengsheng.protos.Role.skill_gui_zha_tos
 import com.fengsheng.protos.skillGuiZhaToc
 import com.fengsheng.protos.skillGuiZhaTos
@@ -141,16 +138,20 @@ class GuiZha : MainPhaseSkill() {
                     it !== player && it!!.alive &&
                         (!it.roleFaceUp || !it.skills.any { s -> s is ChengFu || s is ShouKouRuPing || s is CunBuBuRang }) &&
                         it.isEnemy(player) &&
-                        it.cards.any { card -> card.type in availableCardType }
+                        it.cards.any { card -> card.id !in player.canWeiBiCardIds || card.type in WeiBi.availableCardType }
                 }.run {
-                    filter { it!!.cards.any { card -> card.type in listOf(Jie_Huo, Wu_Dao, Diao_Bao) } }.ifEmpty { this }
-                        .run { if (player.identity != Black) filter { it!!.identity != Black }.ifEmpty { this } else this }
+                    filter {
+                        it!!.cards.any { card ->
+                            card.id in player.canWeiBiCardIds && card.type in WeiBi.availableCardType
+                        }
+                    }.ifEmpty {
+                        if (player.identity != Black) filter { it!!.identity != Black }.ifEmpty { this } else this
+                    }
                 }.randomOrNull() ?: return false
+                val canWeiBiCards = p.cards.filter { it.id in player.canWeiBiCardIds && it.type in WeiBi.availableCardType }
                 val chosenCard =
-                    if (player.weiBiFailRate > 0) listOf(Jie_Huo, Wu_Dao, Diao_Bao).random() // 威逼成功后一定纯随机
-                    else availableCardType.filter { cardType -> p.cards.any { it.type == cardType } }.run {
-                        filter { it != Cheng_Qing }.ifEmpty { this }
-                    }.random()
+                    if (canWeiBiCards.isNotEmpty()) canWeiBiCards.random().type // 有明牌优先威逼明牌
+                    else listOf(Jie_Huo, Wu_Dao, Diao_Bao).random() // 否则纯随机
                 GameExecutor.post(game, {
                     skill.executeProtocol(game, e.whoseTurn, skillGuiZhaTos {
                         cardType = Wei_Bi

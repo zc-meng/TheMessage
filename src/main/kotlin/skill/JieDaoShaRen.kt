@@ -2,7 +2,6 @@ package com.fengsheng.skill
 
 import com.fengsheng.*
 import com.fengsheng.card.Card
-import com.fengsheng.card.count
 import com.fengsheng.phase.FightPhaseIdle
 import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Role.skill_jie_dao_sha_ren_a_tos
@@ -11,10 +10,10 @@ import com.fengsheng.protos.skillJieDaoShaRenAToc
 import com.fengsheng.protos.skillJieDaoShaRenATos
 import com.fengsheng.protos.skillJieDaoShaRenBToc
 import com.fengsheng.protos.skillJieDaoShaRenBTos
+import com.fengsheng.skill.SkillId.SOU_JI
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 /**
  * 商玉技能【借刀杀人】：争夺阶段，你可以翻开此角色牌，然后抽取另一名角色的一张手牌并展示之。若展示的牌是：**黑色**，则你可以将其置入一名角色的情报区，并将你的角色牌翻至面朝下。**非黑色**，则你摸一张牌。
@@ -110,6 +109,7 @@ class JieDaoShaRen : ActiveSkill {
                 }
             }
             if (!card.isBlack()) {
+                r.game!!.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
                 r.draw(1)
                 return ResolveResult(fsm.copy(whoseFightTurn = fsm.inFrontOfWhom), true)
             }
@@ -194,27 +194,26 @@ class JieDaoShaRen : ActiveSkill {
         fun ai(e: FightPhaseIdle, skill: ActiveSkill): Boolean {
             val player = e.whoseFightTurn
             !player.roleFaceUp || return false
-            player.game!!.players.anyoneWillWinOrDie(e) || return false
-            val availableTargets = player.game!!.players.filter {
-                it!!.alive && it.isEnemy(player) && it.cards.isNotEmpty()
-            }.ifEmpty { return false }
-            val weights = availableTargets.map { it!! to it.cards.count(Black).toDouble() / it.cards.size }
-            val totalWeight = weights.sumOf { it.second }
-            var target = availableTargets.first()!!
-            if (totalWeight > 0.0) { // 按权重随机
-                var weight = Random.nextDouble(totalWeight)
-                for ((p, w) in weights) {
-                    if (weight < w) {
-                        target = p
-                        break
-                    }
-                    weight -= w
-                }
-            } else {
-                target = availableTargets.random()!!
+            val g = player.game!!
+            var target = g.players.find { // 明的全黑
+                it!!.alive && it !== player && it.cards.isNotEmpty() &&
+                    it.cards.all { c -> c.isBlack() && c.id in player.canWeiBiCardIds }
             }
-            GameExecutor.post(player.game!!, {
-                skill.executeProtocol(player.game!!, player, skillJieDaoShaRenATos {
+            if (target == null) {
+                val liXing = g.players.find { it!!.alive && it.cards.isNotEmpty() && it.getSkillUseCount(SOU_JI) > 0 }
+                if (liXing != null && liXing !== player && (liXing.isEnemy(player) || liXing.cards.all { it.isBlack() }))
+                    target = liXing // 发过技能的李醒，是敌人或者是全黑
+            }
+            val blackRate = g.deck.colorRates.filterIndexed { i, _ -> i / 3 == Black.number || i % 3 == Black.number }.sum()
+            if (target == null && g.players.anyoneWillWinOrDie(e)) { // 有人要赢了或者要死了，按照已知黑牌数量顺序来
+                target = g.players.filter { it!!.alive && it.isEnemy(player) && it.cards.isNotEmpty() }.maxByOrNull {
+                    (it!!.cards.count { c -> c.isBlack() && c.id in player.canWeiBiCardIds } +
+                        it.cards.count { c -> c.id !in player.canWeiBiCardIds } * blackRate) / it.cards.size
+                }
+            }
+            if (target == null) return false
+            GameExecutor.post(g, {
+                skill.executeProtocol(g, player, skillJieDaoShaRenATos {
                     targetPlayerId = player.getAlternativeLocation(target.location)
                 })
             }, 3, TimeUnit.SECONDS)

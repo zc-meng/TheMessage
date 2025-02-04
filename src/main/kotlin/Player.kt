@@ -15,6 +15,9 @@ import org.apache.logging.log4j.kotlin.logger
 import kotlin.random.Random
 
 abstract class Player protected constructor() {
+    var coefficientA = Random.nextDouble(0.8, 1.2)
+    var coefficientB = Random.nextInt(-15, 15)
+
     @Volatile
     var game: Game? = null
     var playerName = ""
@@ -38,10 +41,8 @@ abstract class Player protected constructor() {
     /** 是否曾经面朝上过（公开角色直接为`true`） */
     var hasEverFaceUp = false
 
-    /**
-     * 威逼不透视概率，用于机器人。开局威逼百分之百不透视，每次失败变为零，每次成功加一。
-     */
-    var weiBiFailRate = 1
+    /** 威逼的明牌 */
+    val canWeiBiCardIds = HashSet<Int>()
 
     /** 本回合是否使用过牌 */
     var useCardThisTurn = false

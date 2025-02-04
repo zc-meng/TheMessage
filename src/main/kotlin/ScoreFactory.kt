@@ -17,7 +17,7 @@ import kotlin.math.ceil
 import kotlin.math.round
 
 object ScoreFactory : Logging {
-    private val rankString = listOf("I", "II", "III", "IV", "V")
+    private val rankString = listOf("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X")
 
     fun getRankNameByScore(score: Int): String = when {
         score < 60 -> "\uD83E\uDD49" + rankString[2 - score / 20]
@@ -27,10 +27,12 @@ object ScoreFactory : Logging {
         score < 1000 -> "\uD83D\uDC8D" + rankString[4 - (score - 600) / 80]
         score < 1500 -> "\uD83D\uDCA0" + rankString[4 - (score - 1000) / 100]
         score < 2000 -> "\uD83D\uDC51" + rankString[4 - (score - 1500) / 100]
-        else -> "\uD83D\uDC51" + rankString[0]
+        score < 2900 -> "\u2B50" + rankString[9 - (score - 2000) / 100]
+        else -> "\u2B50" + rankString[0]
     }
 
     fun getSeasonTitleByScore(score: Int): String = when {
+        score >= 2900 -> "\u2B50"
         score >= 1900 -> "\uD83D\uDC51"
         score >= 1400 -> "\uD83D\uDCA0"
         score >= 920 -> "\uD83D\uDC8D"
@@ -47,7 +49,8 @@ object ScoreFactory : Logging {
             score < 1000 -> "铂金" + rankString[4 - (score - 600) / 80]
             score < 1500 -> "钻石" + rankString[4 - (score - 1000) / 100]
             score < 2000 -> "大师" + rankString[4 - (score - 1500) / 100]
-            else -> "大师" + rankString[0]
+            score < 2800 -> "至尊" + rankString[9 - (score - 2000) / 100]
+            else -> "至尊" + rankString[0]
         }
     }
 

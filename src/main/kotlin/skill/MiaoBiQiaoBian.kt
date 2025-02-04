@@ -80,6 +80,7 @@ class MiaoBiQiaoBian : ActiveSkill {
             target1.deleteMessageCard(card1.id)
             r.cards.add(card1)
             logger.info("${r}发动了[妙笔巧辩]，拿走了${target1}面前的$card1")
+            g.players.forEach { it!!.canWeiBiCardIds.add(card1.id) }
             val canTakeAnother = g.players.any {
                 it!!.alive && it.messageCards.any { c -> !c.hasSameColor(card1) }
             }
@@ -185,6 +186,7 @@ class MiaoBiQiaoBian : ActiveSkill {
             }
             r.incrSeq()
             logger.info("${r}拿走了${target2}面前的$card2")
+            g.players.forEach { it!!.canWeiBiCardIds.add(card2.id) }
             target2.deleteMessageCard(card2.id)
             r.cards.add(card2)
             g.players.send {

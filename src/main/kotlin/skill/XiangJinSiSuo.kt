@@ -15,7 +15,7 @@ import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
 
 /**
- * 孙守謨技能【详尽思索】：每当情报传出时，你可以指定一名角色，若最后情报被该角色接收，你摸两张牌。
+ * 孙守謨技能【详尽思索】：每当情报传出时，你可以指定一名角色。若如此做，你本回合不能使用【截获】【误导】。若最后情报被该角色接收，你摸一张牌。
  */
 class XiangJinSiSuo : TriggeredSkill {
     override val skillId = SkillId.XIANG_JIN_SI_SUO
@@ -57,6 +57,10 @@ class XiangJinSiSuo : TriggeredSkill {
                         val whoseTurn = event.whoseTurn
                         val sender = event.sender
                         val target = event.targetPlayer
+                        if (sender.isEnemy(r) && sender.willWin(whoseTurn, sender, event.messageCard))
+                            return@skillXiangJinSiSuoATos
+                        if (target.isEnemy(r) && target.willWin(whoseTurn, target, event.messageCard))
+                            return@skillXiangJinSiSuoATos
                         val availablePlayers = arrayListOf(target)
                         if (event.dir == Up && !event.lockedPlayers.any { it === target }) {
                             val v1 = target.calculateMessageCardValue(whoseTurn, target, event.messageCard, sender = sender)
@@ -81,6 +85,8 @@ class XiangJinSiSuo : TriggeredSkill {
                                 bestTarget = t
                             }
                         }
+                        if (bestTarget !== sender && bestTarget !== target)
+                            return@skillXiangJinSiSuoATos
                         enable = true
                         targetPlayerId = r.getAlternativeLocation(bestTarget.location)
                     })
@@ -128,6 +134,7 @@ class XiangJinSiSuo : TriggeredSkill {
             }
             r.incrSeq()
             r.skills += XiangJinSiSuo2(target)
+            r.skills += CannotPlayCard(listOf(Jie_Huo, Wu_Dao))
             logger.info("${r}发动了[详尽思索]，指定了$target")
             r.game!!.players.send {
                 skillXiangJinSiSuoAToc {
@@ -140,9 +147,7 @@ class XiangJinSiSuo : TriggeredSkill {
         }
     }
 
-    private class XiangJinSiSuo2(val target: Player) :
-        TriggeredSkill,
-        OneTurnSkill {
+    private class XiangJinSiSuo2(val target: Player) : TriggeredSkill, OneTurnSkill {
         override val skillId = SkillId.UNKNOWN
 
         override val isInitialSkill = false

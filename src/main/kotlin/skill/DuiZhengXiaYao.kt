@@ -78,6 +78,10 @@ class DuiZhengXiaYao : ActiveSkill {
                 GameExecutor.post(g, {
                     val messageCards = fsm.inFrontOfWhom.messageCards.toList()
                     fsm.inFrontOfWhom.messageCards.add(fsm.messageCard) // 先假设这个人已经获得了这张情报
+                    val coefficientA = r.coefficientA
+                    val coefficientB = r.coefficientB
+                    r.coefficientA = 1.0
+                    r.coefficientB = 0
                     var chooseColor = Black
                     var value = -1
                     for (c in listOf(Red, Blue, Black)) { // 对红、蓝、黑三种颜色进行判断
@@ -91,6 +95,8 @@ class DuiZhengXiaYao : ActiveSkill {
                             }
                         }
                     }
+                    r.coefficientA = coefficientA
+                    r.coefficientB = coefficientB
                     fsm.inFrontOfWhom.messageCards.removeLast() // 把刚才加上的那张情报移除
                     if (value < 0) { // 如果没有找到合适的情报，则不展示两张牌
                         g.tryContinueResolveProtocol(r, skillDuiZhengXiaYaoBTos { })
@@ -177,6 +183,9 @@ class DuiZhengXiaYao : ActiveSkill {
         override fun resolve(): ResolveResult? {
             logger.info("${r}展示了${cards.joinToString()}")
             val g = r.game!!
+            cards.forEach { c ->
+                g.players.forEach { it!!.canWeiBiCardIds.add(c.id) }
+            }
             g.players.send { p ->
                 skillDuiZhengXiaYaoBToc {
                     playerId = p.getAlternativeLocation(r.location)
@@ -201,6 +210,10 @@ class DuiZhengXiaYao : ActiveSkill {
             if (r is RobotPlayer) {
                 GameExecutor.post(g, {
                     fsm.inFrontOfWhom.messageCards.add(fsm.messageCard) // 先假设这个人已经获得了这张情报
+                    val coefficientA = r.coefficientA
+                    val coefficientB = r.coefficientB
+                    r.coefficientA = 1.0
+                    r.coefficientB = 0
                     var playerAndCard: PlayerAndCard? = null
                     var value = Int.MIN_VALUE
                     for (p in g.players) {
@@ -216,6 +229,8 @@ class DuiZhengXiaYao : ActiveSkill {
                             }
                         }
                     }
+                    r.coefficientA = coefficientA
+                    r.coefficientB = coefficientB
                     fsm.inFrontOfWhom.messageCards.removeLast() // 把刚才加上的那张情报移除
                     playerAndCard!! // 从逻辑上来说，必定能找到一个合适的情报，否则上一条协议会拦截
                     g.tryContinueResolveProtocol(r, skillDuiZhengXiaYaoCTos {

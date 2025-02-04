@@ -31,7 +31,10 @@ class RemoveOnePositionTos : AbstractProtoHandler<Fengsheng.remove_one_position_
             p?.send(removeOnePositionToc { position = index })
         }
         if (players.any { it == null }) return
-        if (!Config.IsGmEnable && players.count { it is HumanPlayer } <= 1 && Statistics.getEnergy(r.playerName) <= 0) {
+        if (!Config.IsGmEnable && players.count { it is HumanPlayer } <= 1 && (Statistics.getEnergy(r.playerName) <= 0 ||
+                Game.gameCache.count { (_, v) -> // 未开始或有空位的房间（含本房间）大于1，则禁止开局
+                    !v.isStarted || v.players.any { it !is HumanPlayer }
+                } > 2)) {
             val robotPlayerIndex = players.indexOfLast { it is RobotPlayer }
             if (robotPlayerIndex >= 0) {
                 val robotPlayer = players[robotPlayerIndex]!!

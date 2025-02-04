@@ -105,6 +105,8 @@ class ShiTan : Card {
             get() = fsm.whoseTurn
 
         override fun resolve(): ResolveResult? {
+            r.coefficientA = (r.coefficientA + 1) / 2
+            r.coefficientB = (r.coefficientB + 1) / 2
             r.game!!.players.send { p ->
                 showShiTanToc {
                     playerId = p.getAlternativeLocation(r.location)
@@ -237,8 +239,8 @@ class ShiTan : Card {
                         return false // 开局不使用-1试探队友
                     player.game!!.players.filter {
                         it !== player && it!!.alive && (!it.roleFaceUp ||
-                            (it.findSkill(CHENG_FU) == null && it.findSkill(SHOU_KOU_RU_PING) == null)) &&
-                            it.cards.isNotEmpty() // 不对没有手牌的人使用
+                            it.findSkill(CHENG_FU) == null && it.findSkill(SHOU_KOU_RU_PING) == null &&
+                            it.findSkill(CONG_RONG_YING_DUI) == null) && it.cards.isNotEmpty() // 不对没有手牌的人使用
                     }
                 }
 
@@ -253,26 +255,8 @@ class ShiTan : Card {
                         }
                     }
 
-                player.identity == Black -> {
-                    player.game!!.players.any {
-                        it!!.alive && it.identity in listOf(Red, Blue) && it.messageCards.count(it.identity) == 2
-                    } || return false
-                    // 按照和自己身份相同的情报数降序排列，然后按照手牌数升序排列
-                    val c1: Comparator<Player?> = Comparator { p1, p2 ->
-                        val p1MsgCount = p1!!.messageCards.count(p1.identity)
-                        val p2MsgCount = p2!!.messageCards.count(p2.identity)
-                        if (p1MsgCount != p2MsgCount)
-                            return@Comparator p2MsgCount.compareTo(p1MsgCount)
-                        p1.cards.size.compareTo(p2.cards.size)
-                    }
-                    val colors = listOf(Red, Blue).filter { it !in (card as ShiTan).whoDrawCard }
-                    if (colors.isEmpty()) return false
-                    else {
-                        listOf(player.game!!.players.filter {
-                            it!!.alive && it.identity in colors && it.cards.isNotEmpty()
-                        }.minWithOrNull(c1))
-                    }
-                }
+                player.identity == Black ->
+                    return false
 
                 jianXianSheng != null && player.isPartner(jianXianSheng) ->
                     listOf(jianXianSheng)

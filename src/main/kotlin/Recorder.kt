@@ -121,6 +121,7 @@ class Recorder {
                 currentIndex++
             }
             player.send(reconnectToc { isEnd = true })
+            skipCount = 0
         }
         while (true) {
             if (!player.isActive) {

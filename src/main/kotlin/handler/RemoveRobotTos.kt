@@ -20,6 +20,7 @@ class RemoveRobotTos : AbstractProtoHandler<Fengsheng.remove_robot_tos>() {
             val robotPlayer = players[index]!!
             r.game!!.players = r.game!!.players.toMutableList().apply { set(index, null) }
             logger.info("${robotPlayer.playerName}离开了房间")
+            r.game!!.lastJoinTime = System.currentTimeMillis()
             val reply = leaveRoomToc { position = robotPlayer.location }
             players.send { reply }
             r.game!!.cancelStartTimer()

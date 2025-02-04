@@ -93,6 +93,7 @@ class LianMin : TriggeredSkill {
             }
             r.incrSeq()
             logger.info("${r}发动了[怜悯]，将${target}面前的${card}加入了手牌")
+            r.game!!.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
             target.deleteMessageCard(card.id)
             r.cards.add(card)
             r.game!!.players.send {

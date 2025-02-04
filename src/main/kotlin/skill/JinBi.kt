@@ -130,6 +130,7 @@ class JinBi : MainPhaseSkill() {
             target.cards.removeAll(cards.toSet())
             r.cards.addAll(cards)
             logger.info("${target}给了${r}${cards.joinToString()}")
+            cards.forEach { target.canWeiBiCardIds.add(it.id) }
             g.players.send { p ->
                 skillJinBiBToc {
                     playerId = p.getAlternativeLocation(r.location)

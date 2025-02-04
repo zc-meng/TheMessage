@@ -64,7 +64,7 @@ class MiaoShou : ActiveSkill {
             g.resolve(NextTurn(fsm.whoseTurn))
             return
         }
-        r.weiBiFailRate = 0
+        target.cards.forEach { r.canWeiBiCardIds.add(it.id) }
         g.resolve(ExecuteMiaoShou(fsm, r, target))
     }
 

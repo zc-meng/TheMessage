@@ -75,7 +75,6 @@ object QQPusher {
         newScoreMap: HashMap<String, Int>,
         pushToQQ: Boolean,
     ) {
-        if (!Config.EnablePush) return
         val lines = ArrayList<String>()
         val map = HashMap<String, String>()
         lines.add("对局结果")
@@ -102,18 +101,19 @@ object QQPusher {
                 else "+0"
             val rank = ScoreFactory.getRankNameByScore(newScore)
             lines.add("$name,$roleName,$identity,$result,$rank,$newScore($addScoreStr)")
-            map[name] = "$roleName,$identity,$result,$rank,$newScore($addScoreStr)"
+            if (player is HumanPlayer)
+                map[name] = "$roleName,$identity,$result,$rank,$newScore($addScoreStr)"
         }
         val text = lines.joinToString(separator = "\n")
-        val at = runBlocking {
+        val at = if (pushToQQ) runBlocking {
             mu.withLock {
                 notifyQueueOnEnd.toLongArray().apply { notifyQueueOnEnd.clear() }
             }
-        }
+        } else LongArray(0)
         @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.launch {
             try {
-                if (pushToQQ)
+                if (Config.EnablePush && pushToQQ)
                     Config.PushQQGroups.forEach { sendGroupMessage(it, text, false, *at) }
                 File("history").mkdirs()
                 map.forEach(::addHistory)

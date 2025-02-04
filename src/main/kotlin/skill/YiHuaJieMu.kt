@@ -3,9 +3,13 @@ package com.fengsheng.skill
 import com.fengsheng.*
 import com.fengsheng.card.PlayerAndCard
 import com.fengsheng.phase.FightPhaseIdle
-import com.fengsheng.protos.*
-import com.fengsheng.protos.Common.color.*
+import com.fengsheng.protos.Common.color.Blue
+import com.fengsheng.protos.Common.color.Red
 import com.fengsheng.protos.Role.skill_yi_hua_jie_mu_b_tos
+import com.fengsheng.protos.skillYiHuaJieMuAToc
+import com.fengsheng.protos.skillYiHuaJieMuATos
+import com.fengsheng.protos.skillYiHuaJieMuBToc
+import com.fengsheng.protos.skillYiHuaJieMuBTos
 import com.google.protobuf.GeneratedMessage
 import org.apache.logging.log4j.kotlin.logger
 import java.util.concurrent.TimeUnit
@@ -178,6 +182,7 @@ class YiHuaJieMu : ActiveSkill {
             if (joinIntoHand) {
                 player.cards.add(card)
                 logger.info("${fromPlayer}面前的${card}加入了${player}的手牌")
+                player.game!!.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
             } else {
                 toPlayer.messageCards.add(card)
                 player.game!!.addEvent(AddMessageCardEvent(fsm.whoseTurn))

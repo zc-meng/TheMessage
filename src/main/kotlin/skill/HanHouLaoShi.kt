@@ -21,6 +21,7 @@ class HanHouLaoShi : TriggeredSkill {
         val target = event.inFrontOfWhom
         val card = askWhom.cards.random()
         logger.info("${askWhom}发动了[憨厚老实]，被${target}抽取了一张$card")
+        askWhom.canWeiBiCardIds.add(card.id)
         askWhom.deleteCard(card.id)
         target.cards.add(card)
         g.players.send {

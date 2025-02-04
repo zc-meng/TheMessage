@@ -100,6 +100,7 @@ class ZhuangZhiManHuai : TriggeredSkill {
                         .forEach { it.draw(1) }
             } else {
                 logger.info("${r}发动了[壮志满怀]，将${target}面前的${card}加入了手牌")
+                r.game!!.players.forEach { it!!.canWeiBiCardIds.add(card.id) }
                 target!!.deleteMessageCard(card.id)
                 r.cards.add(card)
             }

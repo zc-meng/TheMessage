@@ -2,8 +2,11 @@ package com.fengsheng.skill
 
 import com.fengsheng.*
 import com.fengsheng.RobotPlayer.Companion.bestCard
+import com.fengsheng.RobotPlayer.Companion.sortCards
 import com.fengsheng.card.Card
+import com.fengsheng.card.count
 import com.fengsheng.protos.*
+import com.fengsheng.protos.Common.color.Black
 import com.fengsheng.protos.Fengsheng.end_receive_phase_tos
 import com.fengsheng.protos.Role.*
 import com.google.protobuf.GeneratedMessage
@@ -98,7 +101,7 @@ class JianDiFengXing : TriggeredSkill {
             if (hasBlack && r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {
                     r.game!!.tryContinueResolveProtocol(r, skillJianDiFengXingBTos {
-                        cardId = r.cards.filter { it.isPureBlack() }.random().id
+                        cardId = r.cards.filter { it.isPureBlack() }.bestCard(r.identity, true).id
                     })
                 }, 3, TimeUnit.SECONDS)
             }
@@ -175,12 +178,21 @@ class JianDiFengXing : TriggeredSkill {
             if (messageExists && r is RobotPlayer) {
                 GameExecutor.post(r.game!!, {
                     r.game!!.tryContinueResolveProtocol(r, skillJianDiFengXingCTos {
-                        if (r.isEnemy(event.inFrontOfWhom) && !event.messageCard.isBlack()) {
-                            val cards = r.cards.filter { it.isBlack() }
-                            if (cards.isNotEmpty()) {
-                                enable = true
-                                cardId = cards.bestCard(r.identity, true).id
+                        var v = 9
+                        var c: Card? = null
+                        val v1 = r.calculateRemoveCardValue(event.whoseTurn, event.inFrontOfWhom, event.messageCard)
+                        event.inFrontOfWhom.deleteMessageCard(event.messageCard.id)
+                        for (card in r.cards.filter { it.isBlack() }.sortCards(r.identity, true)) {
+                            val v2 = r.calculateMessageCardValue(event.whoseTurn, event.inFrontOfWhom, card)
+                            if (v1 + v2 > v) {
+                                v = v1 + v2
+                                c = card
                             }
+                        }
+                        event.inFrontOfWhom.messageCards.add(event.messageCard)
+                        if (c != null) {
+                            enable = true
+                            cardId = c.id
                         }
                     })
                 }, 3, TimeUnit.SECONDS)
@@ -250,6 +262,8 @@ class JianDiFengXing : TriggeredSkill {
         fun ai(fsm: Fsm): Boolean {
             if (fsm !is ExecuteJianDiFengXingA) return false
             val p = fsm.event.sender
+            p.cards.all { !it.isPureBlack() } || p.messageCards.count(Black) < 2 ||
+                p.calculateRemoveCardValue(fsm.whoseTurn, fsm.event.inFrontOfWhom, fsm.event.messageCard) > 150 || return false
             GameExecutor.post(p.game!!, {
                 p.game!!.tryContinueResolveProtocol(p, skillJianDiFengXingATos { })
             }, 3, TimeUnit.SECONDS)
